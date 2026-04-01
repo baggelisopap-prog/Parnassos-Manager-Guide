@@ -77,7 +77,9 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .prop-card .tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
 .tag { font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 500; }
 .tag-lock { background: rgba(74,158,255,0.1); color: var(--accent); }
-.tag-time { background: rgba(52,211,153,0.1); color: var(--success); }
+.tag-in { background: rgba(52,211,153,0.1); color: var(--success); }
+.tag-out { background: rgba(251,191,36,0.1); color: var(--warning); }
+.tag-ac { background: rgba(168,139,250,0.1); color: var(--purple); }
 
 /* Property Detail */
 .detail-view { position: fixed; inset: 0; background: var(--bg); z-index: 50; overflow-y: auto; transform: translateX(100%); transition: transform 0.3s ease; }
@@ -503,7 +505,7 @@ function renderFilters() {
 
 function setFilter(f) { activeFilter = f; renderFilters(); renderProperties(); }
 
-// ─── ΝΕΑ ΔΟΜΗ ΚΑΡΤΑΣ ΙΔΙΟΚΤΗΣΙΑΣ ────────────────────────────────────────
+// ─── ΚΑΡΤΕΣ ΙΔΙΟΚΤΗΣΙΑΣ ──────────────────────────────────────────────────
 function renderProperties() {
   const el = document.getElementById('propList');
   const filtered = activeFilter === 'all' ? properties : properties.filter(p => p.subregion === activeFilter);
@@ -519,19 +521,12 @@ function renderProperties() {
     props.forEach((p, i) => {
       const color = SUBREGION_COLORS[p.subregion] || '#4a9eff';
       
-      // Υπολογισμός Επισκεπτών (πχ 4+2)
       let guestStr = '';
       if (p.guests) {
         guestStr = p.guests;
         if (p.extraGuests) guestStr += '+' + p.extraGuests;
       }
 
-      // Υπολογισμός Check-in / Check-out
-      let timeStr = '';
-      if (p.checkin && p.checkout) timeStr = `${p.checkin} - ${p.checkout}`;
-      else if (p.checkin) timeStr = p.checkin;
-
-      // Υπολογισμός Υπότιτλου (Υπνοδωμάτια & Αποθήκη)
       const subParts = [];
       if (p.bedrooms) subParts.push(`🛏️ ${p.bedrooms}`);
       if (p.storage) subParts.push(`📦 ${p.storage}`);
@@ -543,11 +538,12 @@ function renderProperties() {
             <div class="title">${p.nick || p.id}</div>
             <div class="subtitle">${subtitle}</div>
           </div>
-          ${guestStr ? `<span style="font-size:13px; font-weight:700; color:var(--text); background:rgba(255,255,255,0.06); padding:4px 8px; border-radius:8px; display:inline-block; margin-left:8px;">👤 ${guestStr}</span>` : ''}
+          ${guestStr ? `<span style="font-size:13px; font-weight:700; color:var(--text); background:rgba(255,255,255,0.06); padding:4px 8px; border-radius:8px; display:inline-block; margin-left:8px; white-space:nowrap;">👤 ${guestStr}</span>` : ''}
         </div>
         <div class="tags">
           ${p.lockbox ? `<span class="tag tag-lock">🔐 ${p.lockbox}</span>` : ''}
-          ${timeStr ? `<span class="tag tag-time">⏰ ${timeStr}</span>` : ''}
+          ${p.checkin ? `<span class="tag tag-in">📥 In: ${p.checkin}</span>` : ''}
+          ${p.checkout ? `<span class="tag tag-out">📤 Out: ${p.checkout}</span>` : ''}
         </div>
       </div>`;
     });
@@ -596,7 +592,6 @@ function openDetail(id) {
     </div>`;
   }
 
-  // ΔΙΟΡΘΩΜΕΝΗ ΚΑΡΤΕΛΑ ΧΩΡΟΥ (Εμφανίζει τα πάντα, ακόμα κι αν είναι κείμενο)
   if (p.bedrooms || p.bathrooms || p.sqm || p.levels || p.doubleBeds || p.singleBeds || p.sofaDouble || p.sofaSingle) {
     html += `<div class="info-card"><div class="info-title">🏠 Χώρος</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -612,7 +607,6 @@ function openDetail(id) {
     </div>`;
   }
 
-  // ΝΕΑ ΑΝΑΔΙΠΛΟΥΜΕΝΑ ΜΕΝΟΥ (Συνδυασμός χώρων & παροχών)
   const combinedOtherSpaces = [p.otherRooms, p.otherSpaces].filter(Boolean).join('<br><br>');
 
   const sections = [
