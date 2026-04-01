@@ -65,34 +65,11 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .page-header h2 { font-size: 20px; font-weight: 700; }
 .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
-/* Filter Chips (ΝΕΟ ΑΛΗΘΙΝΟ GLOW EFFECT) */
-.filters { display: flex; gap: 10px; overflow-x: auto; padding: 8px 16px 16px; scrollbar-width: none; align-items: center; }
+/* Filter Chips (Απαλό στυλ) */
+.filters { display: flex; gap: 8px; overflow-x: auto; padding: 8px 16px 12px; scrollbar-width: none; align-items: center; }
 .filters::-webkit-scrollbar { display: none; }
-.chip { 
-  padding: 8px 18px; 
-  border-radius: 20px; 
-  border: 1px solid var(--border); 
-  background: rgba(255,255,255,0.03); 
-  color: var(--text-muted); 
-  cursor: pointer; 
-  font-size: 13px; 
-  font-weight: 700; 
-  white-space: nowrap; 
-  font-family: inherit; 
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-.chip:active { transform: scale(0.92); }
-/* Όταν πατηθεί ενεργοποιείται το χρώμα από τη μεταβλητή --chip-color */
-.chip.active { 
-  border-color: var(--chip-color); 
-  background: var(--chip-color); 
-  color: #fff; 
-  /* Το πραγματικό Glow (φωτισμός νέον) γύρω από το κουμπί */
-  box-shadow: 0 0 16px var(--chip-color), inset 0 0 8px rgba(255,255,255,0.2); 
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  transform: translateY(-3px); 
-}
+.chip { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; font-family: inherit; transition: all 0.2s ease; }
+.chip:active { transform: scale(0.95); }
 
 /* Property Cards */
 .card-group { margin-bottom: 16px; }
@@ -128,10 +105,16 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 
 /* Accordion & Storage & Points */
 .accordion { margin-bottom: 8px; background: rgba(74,158,255,0.04); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
-.accordion-header { width: 100%; padding: 14px 16px; background: none; border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text); font-size: 14px; font-weight: 600; font-family: inherit; }
-.accordion-arrow { font-size: 18px; color: var(--text-muted); transition: transform 0.2s; }
-.accordion-arrow.open { transform: rotate(180deg); }
+/* Το header πλέον έχει transition για να αλλάζει χρώμα ομαλά */
+.accordion-header { width: 100%; padding: 14px 16px; background: none; border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text); font-size: 14px; font-weight: 600; font-family: inherit; transition: all 0.2s ease; }
+/* ΟΤΑΝ ΕΙΝΑΙ ΑΝΟΙΧΤΟ (Active) ΓΙΝΕΤΑΙ ΓΑΛΑΖΙΟ */
+.accordion-header.active { background: var(--accent); color: #fff; }
+
+.accordion-arrow { font-size: 18px; color: var(--text-muted); transition: transform 0.2s, color 0.2s; }
+.accordion-arrow.open { transform: rotate(180deg); color: #fff; } /* Γίνεται λευκό όταν είναι ανοιχτό */
+
 .accordion-body { padding: 0 16px 14px; font-size: 13px; line-height: 1.6; color: var(--text); }
+
 .storage-badge { margin-top: 12px; background: rgba(74,158,255,0.08); border-radius: 10px; padding: 10px 14px; border: 1px solid var(--border); font-size: 12px; color: var(--accent); font-weight: 600; }
 .storage-card { margin: 0 16px 10px; background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; }
 .storage-header { width: 100%; padding: 16px; background: none; border: none; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; font-family: inherit; }
@@ -508,7 +491,7 @@ function renderMapMarkers() {
       popupAnchor: [0, -40]
     });
     
-    const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+    const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
 
     L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
@@ -535,7 +518,7 @@ function renderMapMarkers() {
       popupAnchor: [0, -34]
     });
 
-    const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+    const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
 
     L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
@@ -563,15 +546,21 @@ function renderFilters() {
   const el = document.getElementById('filters');
   const subs = [...new Set(properties.map(p => p.subregion).filter(Boolean))];
   
-  // Το κουμπί ΟΛΑ έχει ως "chip-color" το βασικό μπλε (accent)
-  el.innerHTML = `<button class="chip ${activeFilter==='all'?'active':''}" style="--chip-color: var(--accent);" onclick="setFilter('all')">Όλα</button>`;
+  const allStyle = activeFilter === 'all' 
+    ? `background:var(--accent); color:#fff; border-color:var(--accent); box-shadow: 0 4px 10px rgba(74,158,255,0.3);` 
+    : ``;
+  
+  el.innerHTML = `<button class="chip ${activeFilter==='all'?'active':''}" style="${allStyle}" onclick="setFilter('all')">Όλα</button>`;
   
   subs.forEach(s => {
     const color = SUBREGION_COLORS[s] || '#4a9eff';
     const isActive = activeFilter === s;
     
-    // Περνάμε το χρώμα της περιοχής στο CSS Variable --chip-color
-    el.innerHTML += `<button class="chip ${isActive?'active':''}" style="--chip-color: ${color};" onclick="setFilter('${s}')">${SUBREGION_LABELS[s]||s}</button>`;
+    const style = isActive 
+      ? `background:${color}; color:#fff; border-color:${color}; box-shadow: 0 4px 10px ${color}40;` 
+      : ``;
+      
+    el.innerHTML += `<button class="chip${isActive?' active':''}" style="${style}" onclick="setFilter('${s}')">${SUBREGION_LABELS[s]||s}</button>`;
   });
   document.getElementById('propCount').textContent = `${properties.length} καταλύματα`;
 }
@@ -633,7 +622,7 @@ function openDetail(id) {
   document.getElementById('detailSub').textContent = SUBREGION_LABELS[p.subregion] || p.subregion || '';
   
   const mapsBtn = document.getElementById('detailMapsBtn');
-  mapsBtn.href = p.maps || `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+  mapsBtn.href = p.maps || `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
   mapsBtn.style.display = p.maps || (p.lat && p.lng) ? 'flex' : 'none';
 
   let html = '';
@@ -724,12 +713,16 @@ function openDetail(id) {
 }
 
 function closeDetail() { document.getElementById('detailView').classList.remove('open'); }
+
+// Η ΝΕΑ ΣΥΝΑΡΤΗΣΗ ΓΙΑ ΤΟ ACCORDION (ΠΡΟΣΘΕΤΕΙ ΤΟ ACTIVE STATE)
 function toggleAccordion(btn) {
   const body = btn.nextElementSibling;
   const arrow = btn.querySelector('.accordion-arrow');
   const isOpen = body.style.display !== 'none';
+  
   body.style.display = isOpen ? 'none' : 'block';
   arrow.classList.toggle('open', !isOpen);
+  btn.classList.toggle('active', !isOpen); // <-- Αυτό κάνει το header γαλάζιο!
 }
 
 function copyText(btn, text) {
@@ -758,7 +751,7 @@ function renderStorages() {
           <span style="color:var(--text)">${p.nick || p.id}</span>
           <span class="area">${SUBREGION_LABELS[p.subregion]||''}</span>
         </div>`).join('')}
-        <a class="nav-link" href="https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}" target="_blank" rel="noopener">
+        <a class="nav-link" href="https://www.google.com/maps/search/?api=1&query=LAT,LNG{s.lat},${s.lng}" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη
         </a>
       </div>
@@ -786,7 +779,7 @@ function renderPoints() {
     const icon = CAT_ICONS[cat] || '📍';
     html += `<div style="margin-bottom:20px"><div class="point-cat-title" style="color:${color}">${icon} ${cat}</div>`;
     pts.forEach(p => {
-      const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+      const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
       html += `<a class="point-card" href="${mapLink}" target="_blank" rel="noopener">
         <span class="name">${p.name}</span>
         <span class="maps-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη</span>
