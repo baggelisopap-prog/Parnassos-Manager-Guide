@@ -65,7 +65,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .page-header h2 { font-size: 20px; font-weight: 700; }
 .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
-/* Filter Chips (Απαλό στυλ) */
+/* Filter Chips */
 .filters { display: flex; gap: 8px; overflow-x: auto; padding: 8px 16px 12px; scrollbar-width: none; align-items: center; }
 .filters::-webkit-scrollbar { display: none; }
 .chip { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; font-family: inherit; transition: all 0.2s ease; }
@@ -140,24 +140,25 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .map-popup-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 8px; }
 .map-popup-btn { display: inline-block; background: var(--accent); color: #fff; padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; margin-top: 4px; }
 
+/* Clickable popup area style */
 .clickable-popup-area { cursor: pointer; padding-bottom: 4px; transition: opacity 0.15s; }
 .clickable-popup-area:active { opacity: 0.6; }
 
 /* Labels ON the pins */
 .leaflet-tooltip.pin-label {
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  color: var(--text);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 8px;
-  white-space: nowrap;
-  font-family: 'DM Sans', sans-serif;
-  pointer-events: auto !important; 
-  cursor: pointer;
-  transition: transform 0.1s, background 0.1s;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 8px;
+    white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+    pointer-events: auto !important; 
+    cursor: pointer;
+    transition: transform 0.1s, background 0.1s;
 }
 .leaflet-tooltip.pin-label:active { transform: scale(0.95); background: var(--card-hover); }
 .leaflet-tooltip-top.pin-label:before { border-top-color: var(--border) !important; }
@@ -485,7 +486,7 @@ function renderMapMarkers() {
       popupAnchor: [0, -40]
     });
     
-    const mapLink = p.maps ? p.maps : `https://maps.google.com/?q=${p.lat},${p.lng}`;
+    const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
 
     L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
@@ -493,7 +494,7 @@ function renderMapMarkers() {
       .bindPopup(`
         <div class="clickable-popup-area" onclick="openDetail('${p.id}')">
           <div class="map-popup-title">${label}</div>
-          <div class="map-popup-sub">${SUBREGION_LABELS[p.subregion]||''}</div>
+          <div class="map-popup-sub">${SUBREGION_LABELS[p.subregion]||''} · ${p.bedrooms||''}</div>
         </div>
         <a class="map-popup-btn" href="${mapLink}" target="_blank" onclick="event.stopPropagation()">Στο χάρτη</a>
       `);
@@ -512,7 +513,7 @@ function renderMapMarkers() {
       popupAnchor: [0, -34]
     });
 
-    const mapLink = p.maps ? p.maps : `https://maps.google.com/?q=${p.lat},${p.lng}`;
+    const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
 
     L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
@@ -536,15 +537,12 @@ function renderAll() {
   renderMapMarkers();
 }
 
+// ΕΠΑΝΑΦΟΡΑ ΣΤΑ ΑΠΛΑ CHIPS ΤΗΣ ΠΡΩΤΗΣ ΦΩΤΟΓΡΑΦΙΑΣ
 function renderFilters() {
   const el = document.getElementById('filters');
   const subs = [...new Set(properties.map(p => p.subregion).filter(Boolean))];
   
-  const allStyle = activeFilter === 'all' 
-    ? `background:var(--accent); color:#fff; border-color:var(--accent); box-shadow: 0 4px 10px rgba(74,158,255,0.3);` 
-    : ``;
-  
-  el.innerHTML = `<button class="chip ${activeFilter==='all'?'active':''}" style="${allStyle}" onclick="setFilter('all')">Όλα</button>`;
+  el.innerHTML = `<button class="chip ${activeFilter==='all'?'active':''}" onclick="setFilter('all')">Όλα</button>`;
   
   subs.forEach(s => {
     const color = SUBREGION_COLORS[s] || '#4a9eff';
@@ -583,30 +581,26 @@ function renderProperties() {
         if (p.extraGuests) guestStr += '+' + p.extraGuests;
       }
 
-      // Δημιουργία υποτίτλου (Χωρίς τα κρεβάτια)
       const subParts = [];
       if (p.storage) subParts.push(`📦 ${p.storage}`);
-      const subtitle = subParts.length ? subParts.join('  ·  ') : '—';
+      const subtitle = subParts.length ? subParts.join(' &nbsp;·&nbsp; ') : '';
 
-      const mapLink = p.maps ? p.maps : `https://maps.google.com/?q=${p.lat},${p.lng}`;
+      const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
 
       html += `<div class="prop-card" style="border-left-color:${color}" onclick="openDetail('${p.id}')">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div>
+          <div style="flex: 1;">
             <div class="title">${p.nick || p.id}</div>
-            <div class="subtitle">${subtitle}</div>
+            ${subtitle ? `<div class="subtitle">${subtitle}</div>` : ''}
           </div>
-          
-          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-            ${guestStr ? `<span style="font-size:13px; font-weight:700; color:var(--text); background:rgba(255,255,255,0.06); padding:4px 8px; border-radius:8px; display:inline-block; white-space:nowrap;">👤 ${guestStr}</span>` : ''}
-            
-            <a href="${mapLink}" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:var(--accent); text-decoration:none; background:rgba(74,158,255,0.1); padding:4px 8px; border-radius:6px; transition:background 0.2s;" onclick="event.stopPropagation()">
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; margin-left: 8px;">
+            ${guestStr ? `<span style="font-size:13px; font-weight:700; color:var(--text); background:rgba(255,255,255,0.06); padding:4px 8px; border-radius:8px; white-space:nowrap;">👤 ${guestStr}</span>` : ''}
+            <a class="maps-btn" href="${mapLink}" target="_blank" onclick="event.stopPropagation()" style="font-size:11px; padding:5px 8px; margin:0; border-radius:6px; background:var(--accent-soft); color:var(--accent);">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη
             </a>
           </div>
-
         </div>
-        <div class="tags">
+        <div class="tags" style="margin-top: ${subtitle ? '6px' : '10px'};">
           ${p.lockbox ? `<span class="tag tag-lock">🔐 ${p.lockbox}</span>` : ''}
           ${p.checkin ? `<span class="tag tag-in">📥 In: ${p.checkin}</span>` : ''}
           ${p.checkout ? `<span class="tag tag-out">📤 Out: ${p.checkout}</span>` : ''}
@@ -626,7 +620,7 @@ function openDetail(id) {
   document.getElementById('detailSub').textContent = SUBREGION_LABELS[p.subregion] || p.subregion || '';
   
   const mapsBtn = document.getElementById('detailMapsBtn');
-  mapsBtn.href = p.maps || `https://maps.google.com/?q=${p.lat},${p.lng}`;
+  mapsBtn.href = p.maps || `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
   mapsBtn.style.display = p.maps || (p.lat && p.lng) ? 'flex' : 'none';
 
   let html = '';
@@ -754,7 +748,7 @@ function renderStorages() {
           <span style="color:var(--text)">${p.nick || p.id}</span>
           <span class="area">${SUBREGION_LABELS[p.subregion]||''}</span>
         </div>`).join('')}
-        <a class="nav-link" href="https://maps.google.com/?q=${s.lat},${s.lng}" target="_blank" rel="noopener">
+        <a class="nav-link" href="https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη
         </a>
       </div>
@@ -782,7 +776,7 @@ function renderPoints() {
     const icon = CAT_ICONS[cat] || '📍';
     html += `<div style="margin-bottom:20px"><div class="point-cat-title" style="color:${color}">${icon} ${cat}</div>`;
     pts.forEach(p => {
-      const mapLink = p.maps ? p.maps : `https://maps.google.com/?q=${p.lat},${p.lng}`;
+      const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
       html += `<a class="point-card" href="${mapLink}" target="_blank" rel="noopener">
         <span class="name">${p.name}</span>
         <span class="maps-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη</span>
