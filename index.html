@@ -39,6 +39,16 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .tab-panel { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; transition: opacity 0.2s; opacity: 0; pointer-events: none; }
 .tab-panel.active { opacity: 1; pointer-events: auto; }
 
+/* Dashboard Home (Split Screen) */
+#tab-home { height: 50%; overflow: hidden; }
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px 16px; height: calc(100% - 70px); }
+.dash-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text); font-size: 14px; font-weight: 600; font-family: inherit; border-bottom: 3px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.1s, background 0.1s; }
+.dash-card:active { transform: scale(0.95); background: var(--card-hover); }
+.dash-icon { font-size: 28px; margin-bottom: 4px; }
+
+/* Global Map */
+#global-map { position: absolute; left: 0; width: 100%; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 5; border-top: 2px solid var(--border); box-shadow: 0 -4px 16px rgba(0,0,0,0.3); display: none; background: #e5e3df; }
+
 /* Bottom Nav */
 .bottom-nav { display: flex; border-top: 1px solid var(--border); background: rgba(15,20,25,0.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding-bottom: env(safe-area-inset-bottom, 4px); position: relative; z-index: 10; }
 .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 0 5px; background: none; border: none; cursor: pointer; color: var(--text-dim); transition: color 0.15s; font-family: inherit; }
@@ -89,15 +99,13 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .copy-btn { background: rgba(74,158,255,0.15); border: none; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--accent); font-size: 11px; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
 .copy-btn.copied { background: var(--success); color: var(--bg); }
 
-/* Accordion */
+/* Accordion & Storage & Points */
 .accordion { margin-bottom: 8px; background: rgba(74,158,255,0.04); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
 .accordion-header { width: 100%; padding: 14px 16px; background: none; border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text); font-size: 14px; font-weight: 600; font-family: inherit; }
 .accordion-arrow { font-size: 18px; color: var(--text-muted); transition: transform 0.2s; }
 .accordion-arrow.open { transform: rotate(180deg); }
 .accordion-body { padding: 0 16px 14px; font-size: 13px; line-height: 1.6; color: var(--text); }
 .storage-badge { margin-top: 12px; background: rgba(74,158,255,0.08); border-radius: 10px; padding: 10px 14px; border: 1px solid var(--border); font-size: 12px; color: var(--accent); font-weight: 600; }
-
-/* Storage Tab */
 .storage-card { margin: 0 16px 10px; background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; }
 .storage-header { width: 100%; padding: 16px; background: none; border: none; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; font-family: inherit; }
 .storage-name { font-size: 15px; font-weight: 700; color: var(--text); }
@@ -107,31 +115,41 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .storage-prop .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .storage-prop .area { margin-left: auto; font-size: 11px; color: var(--text-muted); }
 .nav-link { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; background: var(--accent); color: #fff; border-radius: 10px; padding: 10px; text-decoration: none; font-size: 13px; font-weight: 600; font-family: inherit; }
-
-/* Points Tab */
 .point-cat-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; padding: 0 16px; }
 .point-card { display: flex; align-items: center; justify-content: space-between; margin: 0 16px 8px; background: var(--card); border-radius: 12px; padding: 14px 16px; border: 1px solid var(--border); text-decoration: none; transition: background 0.15s; }
 .point-card:active { background: var(--card-hover); }
 .point-card .name { font-size: 14px; color: var(--text); font-weight: 500; }
 .point-card .maps-link { color: var(--accent); display: flex; align-items: center; gap: 4px; font-size: 12px; }
 
-/* Map */
-#map-container { height: 100%; }
-#map { height: calc(100% - 60px); margin: 0 16px 16px; border-radius: 16px; border: 1px solid var(--border); }
+/* Custom Leaflet Tooltips & Popups */
 .leaflet-popup-content-wrapper { background: var(--card) !important; color: var(--text) !important; border-radius: 12px !important; border: 1px solid var(--border) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; }
 .leaflet-popup-content { font-family: 'DM Sans', sans-serif !important; font-size: 13px !important; margin: 12px 14px !important; }
 .leaflet-popup-tip { background: var(--card) !important; }
-.leaflet-popup-close-button { color: var(--text-muted) !important; }
 .map-popup-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
 .map-popup-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 8px; }
 .map-popup-btn { display: inline-block; background: var(--accent); color: #fff; padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; }
+
+/* Labels ON the pins */
+.leaflet-tooltip.pin-label {
+    background-color: var(--card);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 6px;
+    white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+}
+.leaflet-tooltip-top.pin-label:before { border-top-color: var(--accent) !important; }
+.leaflet-tooltip-bottom.pin-label:before { border-bottom-color: var(--accent) !important; }
 
 /* Loading */
 .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 16px; }
 .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Scrollbar */
 .tab-panel::-webkit-scrollbar { width: 0; }
 </style>
 </head>
@@ -149,25 +167,43 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 
 <div class="app" id="app" style="display:none">
   <div class="app-content">
-    <div class="tab-panel active" id="tab-map">
-      <div id="map-container">
-        <div class="page-header"><h2>Χάρτης</h2><p>Όλα τα σημεία στον Παρνασσό</p></div>
-        <div id="map"></div>
+    
+    <div class="tab-panel active" id="tab-home">
+      <div class="page-header"><h2>Αρχική</h2><p>Parnassos Manager Dashboard</p></div>
+      <div class="dash-grid">
+        <button class="dash-card" onclick="switchTab('properties')">
+          <div class="dash-icon">🏠</div><span>Σπίτια</span>
+        </button>
+        <button class="dash-card" onclick="switchTab('storages')">
+          <div class="dash-icon">📦</div><span>Αποθήκες</span>
+        </button>
+        <button class="dash-card" onclick="switchTab('points')">
+          <div class="dash-icon">📍</div><span>Σημεία</span>
+        </button>
+        <button class="dash-card" onclick="switchTab('map')">
+          <div class="dash-icon">🗺️</div><span>Χάρτης</span>
+        </button>
       </div>
     </div>
+
     <div class="tab-panel" id="tab-properties">
       <div class="page-header"><h2>Σπίτια</h2><p id="propCount"></p></div>
       <div class="filters" id="filters"></div>
       <div id="propList" style="padding-bottom:100px"></div>
     </div>
+    
     <div class="tab-panel" id="tab-storages">
       <div class="page-header"><h2>Αποθήκες</h2><p id="storageCount"></p></div>
       <div id="storageList" style="padding:8px 0 100px"></div>
     </div>
+    
     <div class="tab-panel" id="tab-points">
       <div class="page-header"><h2>Σημεία</h2><p>Χρήσιμα σημεία στην περιοχή</p></div>
       <div id="pointsList" style="padding:8px 0 100px"></div>
     </div>
+
+    <div id="global-map"></div>
+
   </div>
   <nav class="bottom-nav" id="bottomNav"></nav>
 </div>
@@ -196,7 +232,7 @@ const CAT_COLORS = { 'Ψώνια':'#34d399', 'Καθημερινά':'#fbbf24', '
 const CAT_ICONS = { 'Ψώνια':'🛒', 'Καθημερινά':'⛽', 'Οδηγίες':'➡️' };
 
 let properties = [], points = [], storages = [];
-let activeTab = 'properties';
+let activeTab = 'home';
 let activeFilter = 'all';
 let map = null;
 
@@ -315,9 +351,10 @@ if (sessionStorage.getItem('pm_unlocked') === 'true') unlock();
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────
 const tabs = [
+  { id:'home', label:'Αρχική', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' },
   { id:'map', label:'Χάρτης', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>' },
-  { id:'properties', label:'Σπίτια', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' },
-  { id:'storages', label:'Αποθήκες', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>' },
+  { id:'properties', label:'Σπίτια', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>' },
+  { id:'storages', label:'Αποθήκες', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>' },
   { id:'points', label:'Σημεία', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' },
 ];
 
@@ -334,18 +371,39 @@ tabs.forEach(t => {
 function switchTab(id) {
   activeTab = id;
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-' + id).classList.add('active');
+  const mapEl = document.getElementById('global-map');
+
+  if (id === 'home') {
+    document.getElementById('tab-home').classList.add('active');
+    mapEl.style.display = 'block';
+    mapEl.style.top = '50%';
+    mapEl.style.height = '50%';
+    mapEl.style.borderRadius = '24px 24px 0 0';
+    if(map) setTimeout(() => map.invalidateSize(), 150);
+  } else if (id === 'map') {
+    mapEl.style.display = 'block';
+    mapEl.style.top = '0';
+    mapEl.style.height = '100%';
+    mapEl.style.borderRadius = '0';
+    if(map) setTimeout(() => map.invalidateSize(), 150);
+  } else {
+    const tabElement = document.getElementById('tab-' + id);
+    if(tabElement) tabElement.classList.add('active');
+    mapEl.style.display = 'none';
+  }
+
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
-  if (id === 'map' && map) setTimeout(() => map.invalidateSize(), 100);
 }
 
-// ─── MAP ──────────────────────────────────────────────────────────────────
+// ─── MAP (Google Maps Integration) ───────────────────────────────────────
 function initMap() {
   if (map) return;
-  map = L.map('map', { zoomControl: false }).setView([38.52, 22.56], 11);
+  map = L.map('global-map', { zoomControl: false }).setView([38.52, 22.56], 11);
   L.control.zoom({ position: 'topright' }).addTo(map);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap © CARTO', maxZoom: 19
+  
+  // Official Google Maps Standard Road Map Tiles
+  L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+    attribution: '© Google Maps', maxZoom: 20
   }).addTo(map);
 }
 
@@ -356,17 +414,23 @@ function renderMapMarkers() {
   properties.forEach(p => {
     if (!p.lat || !p.lng) return;
     const color = SUBREGION_COLORS[p.subregion] || '#4a9eff';
-    L.circleMarker([p.lat, p.lng], { radius: 8, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.9 })
+    const label = p.nick || p.id;
+    
+    L.circleMarker([p.lat, p.lng], { radius: 8, fillColor: color, color: '#fff', weight: 2, fillOpacity: 1 })
       .addTo(map)
-      .bindPopup(`<div class="map-popup-title">${p.nick || p.id}</div><div class="map-popup-sub">${SUBREGION_LABELS[p.subregion]||''} · ${p.bedrooms||''}</div>${p.maps ? `<a class="map-popup-btn" href="${p.maps}" target="_blank">Πλοήγηση</a>` : ''}`);
+      // Permanent Tooltip shows the label constantly on top of the pin
+      .bindTooltip(label, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -10] })
+      .bindPopup(`<div class="map-popup-title">${label}</div><div class="map-popup-sub">${SUBREGION_LABELS[p.subregion]||''} · ${p.bedrooms||''}</div>${p.maps ? `<a class="map-popup-btn" href="${p.maps}" target="_blank">Πλοήγηση</a>` : ''}`);
   });
 
   points.forEach(p => {
     if (!p.lat || !p.lng) return;
     const color = CAT_COLORS[p.category] || '#8899aa';
-    L.circleMarker([p.lat, p.lng], { radius: 6, fillColor: color, color: '#fff', weight: 1.5, fillOpacity: 0.8 })
+    
+    L.circleMarker([p.lat, p.lng], { radius: 6, fillColor: color, color: '#fff', weight: 1.5, fillOpacity: 1 })
       .addTo(map)
-      .bindPopup(`<div class="map-popup-title">${p.name}</div><div class="map-popup-sub">${p.category}</div><a class="map-popup-btn" href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank">Πλοήγηση</a>`);
+      .bindTooltip(p.name, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -8] })
+      .bindPopup(`<div class="map-popup-title">${p.name}</div><div class="map-popup-sub">${p.category}</div><a class="map-popup-btn" href="https://www.google.com/maps/search/?api=1&query=$${p.lat},${p.lng}" target="_blank">Πλοήγηση</a>`);
   });
 }
 
@@ -431,12 +495,11 @@ function openDetail(id) {
   document.getElementById('detailTitle').textContent = p.nick || p.id;
   document.getElementById('detailSub').textContent = SUBREGION_LABELS[p.subregion] || p.subregion || '';
   const mapsBtn = document.getElementById('detailMapsBtn');
-  mapsBtn.href = p.maps || `https://maps.google.com/?q=${p.lat},${p.lng}`;
+  mapsBtn.href = p.maps || `https://www.google.com/maps/search/?api=1&query=$${p.lat},${p.lng}`;
   mapsBtn.style.display = p.maps || (p.lat && p.lng) ? 'flex' : 'none';
 
   let html = '';
 
-  // Quick info
   const quickItems = [
     { icon: '👤', val: p.guests ? `${p.guests}${p.extraGuests ? '+'+p.extraGuests : ''}` : null, label: 'Guests' },
     { icon: '🔐', val: p.lockbox, label: 'Lockbox', copy: true },
@@ -456,7 +519,6 @@ function openDetail(id) {
     html += '</div>';
   }
 
-  // WiFi
   if (p.wifi || p.wifiPass) {
     html += `<div class="info-card">
       <div class="info-title">📶 WiFi</div>
@@ -465,7 +527,6 @@ function openDetail(id) {
     </div>`;
   }
 
-  // Space info
   if (p.bedrooms) {
     html += `<div class="info-card"><div class="info-title">🏠 Χώρος</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -480,7 +541,6 @@ function openDetail(id) {
     </div>`;
   }
 
-  // Accordion sections
   const sections = [
     { title: '📍 Οδηγίες Check-in', content: p.directions },
     { title: '📋 Οδηγίες Σπιτιού', content: p.houseInstructions },
@@ -541,7 +601,7 @@ function renderStorages() {
           <span style="color:var(--text)">${p.nick || p.id}</span>
           <span class="area">${SUBREGION_LABELS[p.subregion]||''}</span>
         </div>`).join('')}
-        <a class="nav-link" href="https://maps.google.com/?q=${s.lat},${s.lng}" target="_blank" rel="noopener">
+        <a class="nav-link" href="https://www.google.com/maps/search/?api=1&query=$${s.lat},${s.lng}" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Πλοηγήσου
         </a>
       </div>
@@ -569,7 +629,7 @@ function renderPoints() {
     const icon = CAT_ICONS[cat] || '📍';
     html += `<div style="margin-bottom:20px"><div class="point-cat-title" style="color:${color}">${icon} ${cat}</div>`;
     pts.forEach(p => {
-      html += `<a class="point-card" href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" rel="noopener">
+      html += `<a class="point-card" href="https://www.google.com/maps/search/?api=1&query=$${p.lat},${p.lng}" target="_blank" rel="noopener">
         <span class="name">${p.name}</span>
         <span class="maps-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Maps</span>
       </a>`;
@@ -579,8 +639,8 @@ function renderPoints() {
   el.innerHTML = html;
 }
 
-// Start on properties tab
-switchTab('properties');
+// Start on Home Tab
+switchTab('home');
 </script>
 </body>
 </html>
