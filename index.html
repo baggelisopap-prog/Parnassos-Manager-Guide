@@ -105,16 +105,11 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 
 /* Accordion & Storage & Points */
 .accordion { margin-bottom: 8px; background: rgba(74,158,255,0.04); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
-/* Το header πλέον έχει transition για να αλλάζει χρώμα ομαλά */
 .accordion-header { width: 100%; padding: 14px 16px; background: none; border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text); font-size: 14px; font-weight: 600; font-family: inherit; transition: all 0.2s ease; }
-/* ΟΤΑΝ ΕΙΝΑΙ ΑΝΟΙΧΤΟ (Active) ΓΙΝΕΤΑΙ ΓΑΛΑΖΙΟ */
 .accordion-header.active { background: var(--accent); color: #fff; }
-
 .accordion-arrow { font-size: 18px; color: var(--text-muted); transition: transform 0.2s, color 0.2s; }
-.accordion-arrow.open { transform: rotate(180deg); color: #fff; } /* Γίνεται λευκό όταν είναι ανοιχτό */
-
+.accordion-arrow.open { transform: rotate(180deg); color: #fff; }
 .accordion-body { padding: 0 16px 14px; font-size: 13px; line-height: 1.6; color: var(--text); }
-
 .storage-badge { margin-top: 12px; background: rgba(74,158,255,0.08); border-radius: 10px; padding: 10px 14px; border: 1px solid var(--border); font-size: 12px; color: var(--accent); font-weight: 600; }
 .storage-card { margin: 0 16px 10px; background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; }
 .storage-header { width: 100%; padding: 16px; background: none; border: none; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; font-family: inherit; }
@@ -145,25 +140,24 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .map-popup-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 8px; }
 .map-popup-btn { display: inline-block; background: var(--accent); color: #fff; padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; margin-top: 4px; }
 
-/* Clickable popup area style */
 .clickable-popup-area { cursor: pointer; padding-bottom: 4px; transition: opacity 0.15s; }
 .clickable-popup-area:active { opacity: 0.6; }
 
 /* Labels ON the pins */
 .leaflet-tooltip.pin-label {
-    background-color: var(--card);
-    border: 1px solid var(--border);
-    color: var(--text);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 8px;
-    white-space: nowrap;
-    font-family: 'DM Sans', sans-serif;
-    pointer-events: auto !important; 
-    cursor: pointer;
-    transition: transform 0.1s, background 0.1s;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+  white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+  pointer-events: auto !important; 
+  cursor: pointer;
+  transition: transform 0.1s, background 0.1s;
 }
 .leaflet-tooltip.pin-label:active { transform: scale(0.95); background: var(--card-hover); }
 .leaflet-tooltip-top.pin-label:before { border-top-color: var(--border) !important; }
@@ -491,7 +485,7 @@ function renderMapMarkers() {
       popupAnchor: [0, -40]
     });
     
-    const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
+    const mapLink = p.maps ? p.maps : `https://maps.google.com/?q=${p.lat},${p.lng}`;
 
     L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
@@ -499,7 +493,7 @@ function renderMapMarkers() {
       .bindPopup(`
         <div class="clickable-popup-area" onclick="openDetail('${p.id}')">
           <div class="map-popup-title">${label}</div>
-          <div class="map-popup-sub">${SUBREGION_LABELS[p.subregion]||''} · ${p.bedrooms||''}</div>
+          <div class="map-popup-sub">${SUBREGION_LABELS[p.subregion]||''}</div>
         </div>
         <a class="map-popup-btn" href="${mapLink}" target="_blank" onclick="event.stopPropagation()">Στο χάρτη</a>
       `);
@@ -518,7 +512,7 @@ function renderMapMarkers() {
       popupAnchor: [0, -34]
     });
 
-    const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
+    const mapLink = p.maps ? p.maps : `https://maps.google.com/?q=${p.lat},${p.lng}`;
 
     L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
@@ -589,10 +583,12 @@ function renderProperties() {
         if (p.extraGuests) guestStr += '+' + p.extraGuests;
       }
 
+      // Δημιουργία υποτίτλου (Χωρίς τα κρεβάτια)
       const subParts = [];
-      if (p.bedrooms) subParts.push(`🛏️ ${p.bedrooms}`);
       if (p.storage) subParts.push(`📦 ${p.storage}`);
-      const subtitle = subParts.length ? subParts.join('  ·  ') : '—';
+      const subtitle = subParts.length ? subParts.join('  ·  ') : '—';
+
+      const mapLink = p.maps ? p.maps : `https://maps.google.com/?q=${p.lat},${p.lng}`;
 
       html += `<div class="prop-card" style="border-left-color:${color}" onclick="openDetail('${p.id}')">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
@@ -600,7 +596,15 @@ function renderProperties() {
             <div class="title">${p.nick || p.id}</div>
             <div class="subtitle">${subtitle}</div>
           </div>
-          ${guestStr ? `<span style="font-size:13px; font-weight:700; color:var(--text); background:rgba(255,255,255,0.06); padding:4px 8px; border-radius:8px; display:inline-block; margin-left:8px; white-space:nowrap;">👤 ${guestStr}</span>` : ''}
+          
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+            ${guestStr ? `<span style="font-size:13px; font-weight:700; color:var(--text); background:rgba(255,255,255,0.06); padding:4px 8px; border-radius:8px; display:inline-block; white-space:nowrap;">👤 ${guestStr}</span>` : ''}
+            
+            <a href="${mapLink}" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:var(--accent); text-decoration:none; background:rgba(74,158,255,0.1); padding:4px 8px; border-radius:6px; transition:background 0.2s;" onclick="event.stopPropagation()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη
+            </a>
+          </div>
+
         </div>
         <div class="tags">
           ${p.lockbox ? `<span class="tag tag-lock">🔐 ${p.lockbox}</span>` : ''}
@@ -622,7 +626,7 @@ function openDetail(id) {
   document.getElementById('detailSub').textContent = SUBREGION_LABELS[p.subregion] || p.subregion || '';
   
   const mapsBtn = document.getElementById('detailMapsBtn');
-  mapsBtn.href = p.maps || `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
+  mapsBtn.href = p.maps || `https://maps.google.com/?q=${p.lat},${p.lng}`;
   mapsBtn.style.display = p.maps || (p.lat && p.lng) ? 'flex' : 'none';
 
   let html = '';
@@ -714,7 +718,6 @@ function openDetail(id) {
 
 function closeDetail() { document.getElementById('detailView').classList.remove('open'); }
 
-// Η ΝΕΑ ΣΥΝΑΡΤΗΣΗ ΓΙΑ ΤΟ ACCORDION (ΠΡΟΣΘΕΤΕΙ ΤΟ ACTIVE STATE)
 function toggleAccordion(btn) {
   const body = btn.nextElementSibling;
   const arrow = btn.querySelector('.accordion-arrow');
@@ -722,7 +725,7 @@ function toggleAccordion(btn) {
   
   body.style.display = isOpen ? 'none' : 'block';
   arrow.classList.toggle('open', !isOpen);
-  btn.classList.toggle('active', !isOpen); // <-- Αυτό κάνει το header γαλάζιο!
+  btn.classList.toggle('active', !isOpen);
 }
 
 function copyText(btn, text) {
@@ -751,7 +754,7 @@ function renderStorages() {
           <span style="color:var(--text)">${p.nick || p.id}</span>
           <span class="area">${SUBREGION_LABELS[p.subregion]||''}</span>
         </div>`).join('')}
-        <a class="nav-link" href="https://www.google.com/maps/search/?api=1&query=LAT,LNG{s.lat},${s.lng}" target="_blank" rel="noopener">
+        <a class="nav-link" href="https://maps.google.com/?q=${s.lat},${s.lng}" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη
         </a>
       </div>
@@ -779,7 +782,7 @@ function renderPoints() {
     const icon = CAT_ICONS[cat] || '📍';
     html += `<div style="margin-bottom:20px"><div class="point-cat-title" style="color:${color}">${icon} ${cat}</div>`;
     pts.forEach(p => {
-      const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
+      const mapLink = p.maps ? p.maps : `https://maps.google.com/?q=${p.lat},${p.lng}`;
       html += `<a class="point-card" href="${mapLink}" target="_blank" rel="noopener">
         <span class="name">${p.name}</span>
         <span class="maps-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη</span>
