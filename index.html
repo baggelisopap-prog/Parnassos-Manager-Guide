@@ -49,6 +49,12 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 /* Global Map */
 #global-map { position: absolute; left: 0; width: 100%; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 5; border-top: 2px solid var(--border); box-shadow: 0 -4px 16px rgba(0,0,0,0.3); display: none; background: #e5e3df; }
 
+/* ΝΕΟ: Αόρατη ασπίδα για κλικ στον μισό χάρτη της αρχικής */
+#map-overlay { position: absolute; left: 0; top: 50%; width: 100%; height: 50%; z-index: 6; cursor: pointer; display: none; }
+
+/* ΝΕΟ: Κρύβει τις ετικέτες όταν ο χάρτης είναι zoomed out */
+.hide-map-labels .pin-label { display: none !important; }
+
 /* Bottom Nav */
 .bottom-nav { display: flex; border-top: 1px solid var(--border); background: rgba(15,20,25,0.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding-bottom: env(safe-area-inset-bottom, 4px); position: relative; z-index: 10; }
 .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 0 5px; background: none; border: none; cursor: pointer; color: var(--text-dim); transition: color 0.15s; font-family: inherit; }
@@ -79,7 +85,6 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .tag-lock { background: rgba(74,158,255,0.1); color: var(--accent); }
 .tag-in { background: rgba(52,211,153,0.1); color: var(--success); }
 .tag-out { background: rgba(251,191,36,0.1); color: var(--warning); }
-.tag-ac { background: rgba(168,139,250,0.1); color: var(--purple); }
 
 /* Property Detail */
 .detail-view { position: fixed; inset: 0; background: var(--bg); z-index: 50; overflow-y: auto; transform: translateX(100%); transition: transform 0.3s ease; }
@@ -218,6 +223,8 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
     </div>
 
     <div id="global-map"></div>
+    
+    <div id="map-overlay" onclick="switchTab('map')"></div>
 
   </div>
   <nav class="bottom-nav" id="bottomNav"></nav>
@@ -244,7 +251,6 @@ const PIN = '1234';
 const SUBREGION_LABELS = { Agoriani:'Αγόριανη', Axladokampos:'Αχλαδόκαμπος', Livadi:'Λιβάδι', Zemenos:'Ζεμενό', Arachova:'Αράχωβα' };
 const SUBREGION_COLORS = { Agoriani:'#4a9eff', Axladokampos:'#34d399', Livadi:'#fbbf24', Zemenos:'#a78bfa', Arachova:'#f87171' };
 
-// Extended Icons for points
 const CAT_COLORS = { 'Ψώνια':'#34d399', 'Καθημερινά':'#fbbf24', 'Οδηγίες':'#8899aa', 'Σούπερ Μάρκετ':'#34d399', 'Καθαριστήριο':'#4a9eff', 'Φαγητό':'#f87171', 'Καφές':'#fbbf24' };
 const CAT_ICONS = { 'Ψώνια':'🛒', 'Καθημερινά':'⛽', 'Οδηγίες':'➡️', 'Σούπερ Μάρκετ':'🛒', 'Καθαριστήριο':'🧺', 'Φαγητό':'🍔', 'Καφές':'☕' };
 
@@ -389,6 +395,7 @@ function switchTab(id) {
   activeTab = id;
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   const mapEl = document.getElementById('global-map');
+  const overlayEl = document.getElementById('map-overlay');
 
   if (id === 'home') {
     document.getElementById('tab-home').classList.add('active');
@@ -396,17 +403,20 @@ function switchTab(id) {
     mapEl.style.top = '50%';
     mapEl.style.height = '50%';
     mapEl.style.borderRadius = '24px 24px 0 0';
+    overlayEl.style.display = 'block';
     if(map) setTimeout(() => map.invalidateSize(), 150);
   } else if (id === 'map') {
     mapEl.style.display = 'block';
     mapEl.style.top = '0';
     mapEl.style.height = '100%';
     mapEl.style.borderRadius = '0';
+    overlayEl.style.display = 'none';
     if(map) setTimeout(() => map.invalidateSize(), 150);
   } else {
     const tabElement = document.getElementById('tab-' + id);
     if(tabElement) tabElement.classList.add('active');
     mapEl.style.display = 'none';
+    overlayEl.style.display = 'none';
   }
 
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
@@ -421,6 +431,17 @@ function initMap() {
   L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     attribution: '© Google Maps', maxZoom: 20
   }).addTo(map);
+
+  // Progressive Magnification Logic (Εμφάνιση/Απόκρυψη Ονομάτων)
+  function updateMapLabels() {
+    if (map.getZoom() < 14) {
+      document.getElementById('global-map').classList.add('hide-map-labels');
+    } else {
+      document.getElementById('global-map').classList.remove('hide-map-labels');
+    }
+  }
+  map.on('zoomend', updateMapLabels);
+  updateMapLabels(); // Κλήση την πρώτη φορά
 }
 
 function renderMapMarkers() {
@@ -530,7 +551,7 @@ function renderProperties() {
       const subParts = [];
       if (p.bedrooms) subParts.push(`🛏️ ${p.bedrooms}`);
       if (p.storage) subParts.push(`📦 ${p.storage}`);
-      const subtitle = subParts.length ? subParts.join(' &nbsp;·&nbsp; ') : '—';
+      const subtitle = subParts.length ? subParts.join('  ·  ') : '—';
 
       html += `<div class="prop-card" style="border-left-color:${color}" onclick="openDetail('${p.id}')">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
