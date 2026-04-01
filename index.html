@@ -65,12 +65,34 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .page-header h2 { font-size: 20px; font-weight: 700; }
 .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
-/* Filter Chips */
-.filters { display: flex; gap: 8px; overflow-x: auto; padding: 8px 16px 16px; scrollbar-width: none; }
+/* Filter Chips (ΝΕΟ ΑΛΗΘΙΝΟ GLOW EFFECT) */
+.filters { display: flex; gap: 10px; overflow-x: auto; padding: 8px 16px 16px; scrollbar-width: none; align-items: center; }
 .filters::-webkit-scrollbar { display: none; }
-.chip { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--text-muted); cursor: pointer; font-size: 13px; font-weight: 700; white-space: nowrap; font-family: inherit; transition: all 0.2s ease; }
-.chip:active { transform: scale(0.95); }
-.chip.active { border-color: var(--accent); background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4); transform: translateY(-2px); }
+.chip { 
+  padding: 8px 18px; 
+  border-radius: 20px; 
+  border: 1px solid var(--border); 
+  background: rgba(255,255,255,0.03); 
+  color: var(--text-muted); 
+  cursor: pointer; 
+  font-size: 13px; 
+  font-weight: 700; 
+  white-space: nowrap; 
+  font-family: inherit; 
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+.chip:active { transform: scale(0.92); }
+/* Όταν πατηθεί ενεργοποιείται το χρώμα από τη μεταβλητή --chip-color */
+.chip.active { 
+  border-color: var(--chip-color); 
+  background: var(--chip-color); 
+  color: #fff; 
+  /* Το πραγματικό Glow (φωτισμός νέον) γύρω από το κουμπί */
+  box-shadow: 0 0 16px var(--chip-color), inset 0 0 8px rgba(255,255,255,0.2); 
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  transform: translateY(-3px); 
+}
 
 /* Property Cards */
 .card-group { margin-bottom: 16px; }
@@ -327,7 +349,6 @@ async function loadData() {
       gasDriver: r.Gas_Driver 
     }));
 
-    // ΔΙΟΡΘΩΣΗ ΓΙΑ ΤΑ ΣΗΜΕΙΑ (Διαβάζει το νέο Google_Maps_Link)
     points = pointsRaw.map(r => ({
       id: r.ID, name: r.Name, category: r.Category,
       lat: parseFloat(r.Latitude), lng: parseFloat(r.Longitude), notes: r.Notes,
@@ -542,21 +563,15 @@ function renderFilters() {
   const el = document.getElementById('filters');
   const subs = [...new Set(properties.map(p => p.subregion).filter(Boolean))];
   
-  const allStyle = activeFilter === 'all' 
-    ? `background:var(--accent); color:#fff; border-color:var(--accent); box-shadow: 0 4px 12px rgba(74,158,255,0.4); transform: translateY(-2px);` 
-    : ``;
-  
-  el.innerHTML = `<button class="chip ${activeFilter==='all'?'active':''}" style="${allStyle}" onclick="setFilter('all')">Όλα</button>`;
+  // Το κουμπί ΟΛΑ έχει ως "chip-color" το βασικό μπλε (accent)
+  el.innerHTML = `<button class="chip ${activeFilter==='all'?'active':''}" style="--chip-color: var(--accent);" onclick="setFilter('all')">Όλα</button>`;
   
   subs.forEach(s => {
     const color = SUBREGION_COLORS[s] || '#4a9eff';
     const isActive = activeFilter === s;
     
-    const style = isActive 
-      ? `background:${color}; color:#fff; border-color:${color}; box-shadow: 0 4px 12px ${color}66; transform: translateY(-2px);` 
-      : `border-color:var(--border); color:var(--text-muted);`;
-      
-    el.innerHTML += `<button class="chip${isActive?' active':''}" style="${style}" onclick="setFilter('${s}')">${SUBREGION_LABELS[s]||s}</button>`;
+    // Περνάμε το χρώμα της περιοχής στο CSS Variable --chip-color
+    el.innerHTML += `<button class="chip ${isActive?'active':''}" style="--chip-color: ${color};" onclick="setFilter('${s}')">${SUBREGION_LABELS[s]||s}</button>`;
   });
   document.getElementById('propCount').textContent = `${properties.length} καταλύματα`;
 }
@@ -771,7 +786,6 @@ function renderPoints() {
     const icon = CAT_ICONS[cat] || '📍';
     html += `<div style="margin-bottom:20px"><div class="point-cat-title" style="color:${color}">${icon} ${cat}</div>`;
     pts.forEach(p => {
-      // Διορθωμένο link για την κάρτα των Σημείων (Points)
       const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
       html += `<a class="point-card" href="${mapLink}" target="_blank" rel="noopener">
         <span class="name">${p.name}</span>
