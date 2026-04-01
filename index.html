@@ -14,7 +14,8 @@
 :root {
   --bg: #0f1419; --card: #1a2332; --card-hover: #1e2a3a; --border: #2a3a4e;
   --accent: #4a9eff; --accent-soft: rgba(74,158,255,0.12);
-  --text: #e4e8ed; --text-muted: #8899aa; --text-dim: #5a6a7a;
+  --text: #e4e8ed; --text-muted: #a0b0c0; /* Πιο φωτεινό γκρι */
+  --text-dim: #7a8a9a; /* Πιο φωτεινό dim */
   --success: #34d399; --warning: #fbbf24; --danger: #f87171; --purple: #a78bfa;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -48,19 +49,43 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 
 /* Global Map */
 #global-map { position: absolute; left: 0; width: 100%; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 5; border-top: 2px solid var(--border); box-shadow: 0 -4px 16px rgba(0,0,0,0.3); display: none; background: #e5e3df; }
-
-/* ΝΕΟ: Αόρατη ασπίδα για κλικ στον μισό χάρτη της αρχικής */
 #map-overlay { position: absolute; left: 0; top: 50%; width: 100%; height: 50%; z-index: 6; cursor: pointer; display: none; }
-
-/* ΝΕΟ: Κρύβει τις ετικέτες όταν ο χάρτης είναι zoomed out */
 .hide-map-labels .pin-label { display: none !important; }
 
-/* Bottom Nav */
-.bottom-nav { display: flex; border-top: 1px solid var(--border); background: rgba(15,20,25,0.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding-bottom: env(safe-area-inset-bottom, 4px); position: relative; z-index: 10; }
-.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 0 5px; background: none; border: none; cursor: pointer; color: var(--text-dim); transition: color 0.15s; font-family: inherit; }
-.nav-btn.active { color: var(--accent); }
-.nav-btn svg { width: 22px; height: 22px; }
-.nav-btn span { font-size: 10px; font-weight: 600; }
+/* Bottom Nav - Αναβαθμισμένο */
+.bottom-nav { 
+  display: flex; 
+  border-top: 1px solid var(--border); 
+  background: rgba(26, 35, 50, 0.95); /* Ελαφρώς πιο φωτεινό φόντο για αντίθεση */
+  backdrop-filter: blur(20px); 
+  -webkit-backdrop-filter: blur(20px); 
+  padding-bottom: env(safe-area-inset-bottom, 4px); 
+  position: relative; 
+  z-index: 10; 
+}
+.nav-btn { 
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 4px; 
+  padding: 10px 0 8px; 
+  background: none; 
+  border: none; 
+  cursor: pointer; 
+  color: var(--text-dim); 
+  transition: all 0.2s; 
+  font-family: inherit; 
+  border-top: 2px solid transparent; /* Χώρος για τη γραμμή επιλογής */
+}
+.nav-btn:active { background: var(--card-hover); }
+.nav-btn.active { 
+  color: var(--accent); 
+  background: var(--accent-soft); 
+  border-top: 2px solid var(--accent); /* Μπλε υπογράμμιση πάνω-πάνω */
+}
+.nav-btn svg { width: 24px; height: 24px; } /* Πιο μεγάλα εικονίδια */
+.nav-btn span { font-size: 11px; font-weight: 700; } /* Πιο ευανάγνωστα γράμματα */
 
 /* Page Header */
 .page-header { padding: 16px 16px 8px; }
@@ -227,6 +252,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
     <div id="map-overlay" onclick="switchTab('map')"></div>
 
   </div>
+  
   <nav class="bottom-nav" id="bottomNav"></nav>
 </div>
 
@@ -432,7 +458,6 @@ function initMap() {
     attribution: '© Google Maps', maxZoom: 20
   }).addTo(map);
 
-  // Progressive Magnification Logic (Εμφάνιση/Απόκρυψη Ονομάτων)
   function updateMapLabels() {
     if (map.getZoom() < 14) {
       document.getElementById('global-map').classList.add('hide-map-labels');
@@ -441,7 +466,7 @@ function initMap() {
     }
   }
   map.on('zoomend', updateMapLabels);
-  updateMapLabels(); // Κλήση την πρώτη φορά
+  updateMapLabels(); 
 }
 
 function renderMapMarkers() {
