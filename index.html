@@ -73,12 +73,11 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .prop-card { margin: 0 16px 8px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: background 0.15s; border-left: 3px solid var(--accent); }
 .prop-card:active { background: var(--card-hover); }
 .prop-card .title { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
-.prop-card .subtitle { font-size: 12px; color: var(--text-muted); }
-.prop-card .tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-.tag { font-size: 11px; padding: 2px 8px; border-radius: 6px; }
+.prop-card .subtitle { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.prop-card .tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.tag { font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 500; }
 .tag-lock { background: rgba(74,158,255,0.1); color: var(--accent); }
 .tag-time { background: rgba(52,211,153,0.1); color: var(--success); }
-.tag-ac { background: rgba(168,139,250,0.1); color: var(--purple); }
 
 /* Property Detail */
 .detail-view { position: fixed; inset: 0; background: var(--bg); z-index: 50; overflow-y: auto; transform: translateX(100%); transition: transform 0.3s ease; }
@@ -417,7 +416,6 @@ function initMap() {
   map = L.map('global-map', { zoomControl: false }).setView([38.52, 22.56], 11);
   L.control.zoom({ position: 'topright' }).addTo(map);
   
-  // Official Google Maps Standard Road Map Tiles
   L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     attribution: '© Google Maps', maxZoom: 20
   }).addTo(map);
@@ -425,16 +423,13 @@ function initMap() {
 
 function renderMapMarkers() {
   if (!map) return;
-  // Clear previous markers
   map.eachLayer(l => { if (l instanceof L.Marker && !l._url) map.removeLayer(l); });
 
-  // 1. Render Properties (Houses)
   properties.forEach(p => {
     if (!p.lat || !p.lng) return;
     const color = SUBREGION_COLORS[p.subregion] || '#4a9eff';
     const label = p.nick || p.id;
     
-    // Create Custom HTML Pin Icon
     const customIcon = L.divIcon({
       className: 'custom-map-marker',
       html: `<div class="marker-bubble" style="background:${color}">🏠</div><div class="marker-tail"></div>`,
@@ -443,12 +438,10 @@ function renderMapMarkers() {
       popupAnchor: [0, -40]
     });
     
-    // Check if property has custom maps link in Excel, otherwise use generic Search link
     const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
 
     L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
-      // interactive: true makes the text label clickable to open the popup!
       .bindTooltip(label, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -45], interactive: true })
       .bindPopup(`
         <div class="clickable-popup-area" onclick="openDetail('${p.id}')">
@@ -459,13 +452,11 @@ function renderMapMarkers() {
       `);
   });
 
-  // 2. Render Points (Markets, etc)
   points.forEach(p => {
     if (!p.lat || !p.lng) return;
     const color = CAT_COLORS[p.category] || '#8899aa';
     const iconSym = CAT_ICONS[p.category] || '📍';
     
-    // Create Custom HTML Pin Icon
     const customIcon = L.divIcon({
       className: 'custom-map-marker',
       html: `<div class="marker-bubble" style="background:${color}">${iconSym}</div><div class="marker-tail"></div>`,
@@ -512,6 +503,7 @@ function renderFilters() {
 
 function setFilter(f) { activeFilter = f; renderFilters(); renderProperties(); }
 
+// ─── ΝΕΑ ΔΟΜΗ ΚΑΡΤΑΣ ΙΔΙΟΚΤΗΣΙΑΣ ────────────────────────────────────────
 function renderProperties() {
   const el = document.getElementById('propList');
   const filtered = activeFilter === 'all' ? properties : properties.filter(p => p.subregion === activeFilter);
@@ -526,15 +518,36 @@ function renderProperties() {
     html += `<div class="card-group"><div class="card-group-title">${region}</div>`;
     props.forEach((p, i) => {
       const color = SUBREGION_COLORS[p.subregion] || '#4a9eff';
+      
+      // Υπολογισμός Επισκεπτών (πχ 4+2)
+      let guestStr = '';
+      if (p.guests) {
+        guestStr = p.guests;
+        if (p.extraGuests) guestStr += '+' + p.extraGuests;
+      }
+
+      // Υπολογισμός Check-in / Check-out
+      let timeStr = '';
+      if (p.checkin && p.checkout) timeStr = `${p.checkin} - ${p.checkout}`;
+      else if (p.checkin) timeStr = p.checkin;
+
+      // Υπολογισμός Υπότιτλου (Υπνοδωμάτια & Αποθήκη)
+      const subParts = [];
+      if (p.bedrooms) subParts.push(`🛏️ ${p.bedrooms}`);
+      if (p.storage) subParts.push(`📦 ${p.storage}`);
+      const subtitle = subParts.length ? subParts.join(' &nbsp;·&nbsp; ') : '—';
+
       html += `<div class="prop-card" style="border-left-color:${color}" onclick="openDetail('${p.id}')">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div><div class="title">${p.nick || p.id}</div><div class="subtitle">${p.bedrooms || '—'} · ${p.sqm ? p.sqm+'m²' : '—'}</div></div>
-          ${p.guests ? `<span style="font-size:12px;color:var(--text-muted)">👤 ${p.guests}</span>` : ''}
+          <div>
+            <div class="title">${p.nick || p.id}</div>
+            <div class="subtitle">${subtitle}</div>
+          </div>
+          ${guestStr ? `<span style="font-size:13px; font-weight:700; color:var(--text); background:rgba(255,255,255,0.06); padding:4px 8px; border-radius:8px; display:inline-block; margin-left:8px;">👤 ${guestStr}</span>` : ''}
         </div>
         <div class="tags">
           ${p.lockbox ? `<span class="tag tag-lock">🔐 ${p.lockbox}</span>` : ''}
-          ${p.checkin ? `<span class="tag tag-time">⏰ ${p.checkin}</span>` : ''}
-          ${p.ac === 'Yes' ? `<span class="tag tag-ac">❄️ A/C</span>` : ''}
+          ${timeStr ? `<span class="tag tag-time">⏰ ${timeStr}</span>` : ''}
         </div>
       </div>`;
     });
@@ -584,7 +597,7 @@ function openDetail(id) {
   }
 
   // ΔΙΟΡΘΩΜΕΝΗ ΚΑΡΤΕΛΑ ΧΩΡΟΥ (Εμφανίζει τα πάντα, ακόμα κι αν είναι κείμενο)
-  if (p.bedrooms || p.bathrooms || p.sqm) {
+  if (p.bedrooms || p.bathrooms || p.sqm || p.levels || p.doubleBeds || p.singleBeds || p.sofaDouble || p.sofaSingle) {
     html += `<div class="info-card"><div class="info-title">🏠 Χώρος</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
         ${p.bedrooms ? `<div class="info-row">Υπνοδωμάτια: <span>${p.bedrooms}</span></div>` : ''}
