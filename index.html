@@ -65,11 +65,12 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .page-header h2 { font-size: 20px; font-weight: 700; }
 .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
-/* Filter Chips */
-.filters { display: flex; gap: 6px; overflow-x: auto; padding: 8px 16px 12px; scrollbar-width: none; }
+/* Filter Chips (Βελτιωμένα με "Glow" Effect) */
+.filters { display: flex; gap: 8px; overflow-x: auto; padding: 8px 16px 16px; scrollbar-width: none; }
 .filters::-webkit-scrollbar { display: none; }
-.chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; font-family: inherit; transition: all 0.15s; }
-.chip.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.chip { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--text-muted); cursor: pointer; font-size: 13px; font-weight: 700; white-space: nowrap; font-family: inherit; transition: all 0.2s ease; }
+.chip:active { transform: scale(0.95); }
+.chip.active { border-color: var(--accent); background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4); transform: translateY(-2px); }
 
 /* Property Cards */
 .card-group { margin-bottom: 16px; }
@@ -261,9 +262,8 @@ let map = null;
 // ─── HELPER: Δημιουργία Clickable Τηλεφώνων ──────────────────────────────
 function linkifyPhones(str) {
   if (!str) return '';
-  // Ψάχνει για συνεχόμενα νούμερα (τουλάχιστον 10 ψηφία) για να φτιάξει Link Κλήσης
   return String(str).replace(/(\+?\d[\d\s-]{8,}\d)/g, (match) => {
-    const num = match.replace(/[\s-]/g, ''); // Καθαρίζει κενά/παύλες για το τηλέφωνο
+    const num = match.replace(/[\s-]/g, ''); 
     return `<a href="tel:${num}" style="color:var(--accent); text-decoration:none; font-weight:700;">${match}</a>`;
   });
 }
@@ -279,8 +279,6 @@ function parseGviz(text) {
   return json.table.rows.map(r => {
     const obj = {};
     r.c.forEach((cell, i) => { 
-      // Νέα αυστηρή λογική: Παίρνουμε ΠΑΝΤΑ το formatted string αν υπάρχει, αλλιώς το value, αλλιώς κενό
-      // Αυτό αποτρέπει την εμφάνιση NaN αν το Excel μπερδέψει κείμενο με νούμερα
       if (!cell) {
         obj[cols[i]] = '';
       } else if (cell.f !== undefined && cell.f !== null) {
@@ -541,11 +539,24 @@ function renderAll() {
 function renderFilters() {
   const el = document.getElementById('filters');
   const subs = [...new Set(properties.map(p => p.subregion).filter(Boolean))];
-  el.innerHTML = `<button class="chip ${activeFilter==='all'?'active':''}" onclick="setFilter('all')">Όλα</button>`;
+  
+  // Το "ΟΛΑ" χρησιμοποιεί το accent color (μπλε) όταν είναι πατημένο
+  const allStyle = activeFilter === 'all' 
+    ? `background:var(--accent); color:#fff; border-color:var(--accent); box-shadow: 0 4px 12px rgba(74,158,255,0.4); transform: translateY(-2px);` 
+    : ``;
+  
+  el.innerHTML = `<button class="chip ${activeFilter==='all'?'active':''}" style="${allStyle}" onclick="setFilter('all')">Όλα</button>`;
+  
   subs.forEach(s => {
     const color = SUBREGION_COLORS[s] || '#4a9eff';
     const isActive = activeFilter === s;
-    el.innerHTML += `<button class="chip${isActive?' active':''}" style="border-color:${isActive?color:'var(--border)'};${isActive?`background:${color}15;color:${color}`:''}" onclick="setFilter('${s}')">${SUBREGION_LABELS[s]||s}</button>`;
+    
+    // Δυναμικό στυλ ανάλογα με το χρώμα της υποπεριοχής
+    const style = isActive 
+      ? `background:${color}; color:#fff; border-color:${color}; box-shadow: 0 4px 12px ${color}66; transform: translateY(-2px);` 
+      : `border-color:var(--border); color:var(--text-muted);`;
+      
+    el.innerHTML += `<button class="chip${isActive?' active':''}" style="${style}" onclick="setFilter('${s}')">${SUBREGION_LABELS[s]||s}</button>`;
   });
   document.getElementById('propCount').textContent = `${properties.length} καταλύματα`;
 }
@@ -639,7 +650,7 @@ function openDetail(id) {
     </div>`;
   }
 
-  // Καρτέλα Χώρου (Με Πηγή Θέρμανσης)
+  // Καρτέλα Χώρου
   if (p.bedrooms || p.bathrooms || p.sqm || p.levels || p.doubleBeds || p.singleBeds || p.sofaDouble || p.sofaSingle || p.heatingSource) {
     html += `<div class="info-card"><div class="info-title">🏠 Χώρος</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
