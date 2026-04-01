@@ -258,6 +258,16 @@ let activeTab = 'home';
 let activeFilter = 'all';
 let map = null;
 
+// ─── HELPER: Δημιουργία Clickable Τηλεφώνων ──────────────────────────────
+function linkifyPhones(str) {
+  if (!str) return '';
+  // Ψάχνει για συνεχόμενα νούμερα (τουλάχιστον 10 ψηφία) για να φτιάξει Link Κλήσης
+  return String(str).replace(/(\+?\d[\d\s-]{8,}\d)/g, (match) => {
+    const num = match.replace(/[\s-]/g, ''); // Καθαρίζει κενά/παύλες για το τηλέφωνο
+    return `<a href="tel:${num}" style="color:var(--accent); text-decoration:none; font-weight:700;">${match}</a>`;
+  });
+}
+
 // ─── GOOGLE SHEETS FETCH ─────────────────────────────────────────────────
 function sheetURL(tab) {
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
@@ -268,7 +278,19 @@ function parseGviz(text) {
   const cols = json.table.cols.map(c => c.label);
   return json.table.rows.map(r => {
     const obj = {};
-    r.c.forEach((cell, i) => { obj[cols[i]] = cell ? (cell.v ?? '') : ''; });
+    r.c.forEach((cell, i) => { 
+      // Νέα αυστηρή λογική: Παίρνουμε ΠΑΝΤΑ το formatted string αν υπάρχει, αλλιώς το value, αλλιώς κενό
+      // Αυτό αποτρέπει την εμφάνιση NaN αν το Excel μπερδέψει κείμενο με νούμερα
+      if (!cell) {
+        obj[cols[i]] = '';
+      } else if (cell.f !== undefined && cell.f !== null) {
+        obj[cols[i]] = cell.f;
+      } else if (cell.v !== undefined && cell.v !== null) {
+        obj[cols[i]] = String(cell.v);
+      } else {
+        obj[cols[i]] = '';
+      }
+    });
     return obj;
   });
 }
@@ -299,12 +321,12 @@ async function loadData() {
       wifi: r.Wifi_Network, wifiPass: r.Wifi_Password,
       directions: r.Check_in_Directions, houseInstructions: r.House_Instructions,
       parking: r.Parking, fireplace: r.Fireplace, heating: r.Heating, hotWater: r.Hot_Water, ac: r.AC,
-      // ΝΕΑ ΠΕΔΙΑ ΓΙΑ ΤΕΧΝΙΚΟΥΣ
       plumber: r.Plumber,
       electrician: r.Electrician,
       burnerTech: r.Burner_Technician,
       oilSupplier: r.Oil_Supplier,
-      gasSupplier: r.Gas_Supplier
+      gasSupplier: r.Gas_Supplier,
+      gasDriver: r.Gas_Driver 
     }));
 
     points = pointsRaw.map(r => ({
@@ -636,13 +658,14 @@ function openDetail(id) {
 
   const combinedOtherSpaces = [p.otherRooms, p.otherSpaces].filter(Boolean).join('<br><br>');
 
-  // Νέα δυναμική λίστα επαφών
+  // Νέα δυναμική λίστα επαφών ΜΕ CLICKABLE TELEPHONES
   let contactsHtml = [];
-  if (p.plumber) contactsHtml.push(`<div class="info-row" style="margin-bottom:8px;">💧 Υδραυλικός: <br><span style="font-weight:600;font-size:14px;">${p.plumber}</span></div>`);
-  if (p.electrician) contactsHtml.push(`<div class="info-row" style="margin-bottom:8px;">⚡ Ηλεκτρολόγος: <br><span style="font-weight:600;font-size:14px;">${p.electrician}</span></div>`);
-  if (p.burnerTech) contactsHtml.push(`<div class="info-row" style="margin-bottom:8px;">🔥 Συντηρητής Καυστήρα: <br><span style="font-weight:600;font-size:14px;">${p.burnerTech}</span></div>`);
-  if (p.oilSupplier) contactsHtml.push(`<div class="info-row" style="margin-bottom:8px;">🛢️ Προμηθευτής Πετρελαίου: <br><span style="font-weight:600;font-size:14px;">${p.oilSupplier}</span></div>`);
-  if (p.gasSupplier) contactsHtml.push(`<div class="info-row" style="margin-bottom:8px;">💨 Προμηθευτής Υγραερίου: <br><span style="font-weight:600;font-size:14px;">${p.gasSupplier}</span></div>`);
+  if (p.plumber) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">💧 Υδραυλικός: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.plumber)}</span></div>`);
+  if (p.electrician) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">⚡ Ηλεκτρολόγος: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.electrician)}</span></div>`);
+  if (p.burnerTech) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">🔥 Συντηρητής Καυστήρα: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.burnerTech)}</span></div>`);
+  if (p.oilSupplier) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">🛢️ Προμηθευτής Πετρελαίου: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.oilSupplier)}</span></div>`);
+  if (p.gasSupplier) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">💨 Προμηθευτής Υγραερίου: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.gasSupplier)}</span></div>`);
+  if (p.gasDriver) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">🚚 Διανομέας Υγραερίου: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.gasDriver)}</span></div>`);
   const contactsContent = contactsHtml.join('');
 
   const sections = [
