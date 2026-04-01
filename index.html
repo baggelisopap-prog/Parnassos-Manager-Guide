@@ -127,7 +127,11 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .leaflet-popup-tip { background: var(--card) !important; }
 .map-popup-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
 .map-popup-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 8px; }
-.map-popup-btn { display: inline-block; background: var(--accent); color: #fff; padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; }
+.map-popup-btn { display: inline-block; background: var(--accent); color: #fff; padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; margin-top: 4px; }
+
+/* NEW: Clickable popup area style */
+.clickable-popup-area { cursor: pointer; padding-bottom: 4px; transition: opacity 0.15s; }
+.clickable-popup-area:active { opacity: 0.6; }
 
 /* Labels ON the pins */
 .leaflet-tooltip.pin-label {
@@ -418,9 +422,14 @@ function renderMapMarkers() {
     
     L.circleMarker([p.lat, p.lng], { radius: 8, fillColor: color, color: '#fff', weight: 2, fillOpacity: 1 })
       .addTo(map)
-      // Permanent Tooltip shows the label constantly on top of the pin
       .bindTooltip(label, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -10] })
-      .bindPopup(`<div class="map-popup-title">${label}</div><div class="map-popup-sub">${SUBREGION_LABELS[p.subregion]||''} · ${p.bedrooms||''}</div>${p.maps ? `<a class="map-popup-btn" href="${p.maps}" target="_blank">Πλοήγηση</a>` : ''}`);
+      .bindPopup(`
+        <div class="clickable-popup-area" onclick="openDetail('${p.id}')">
+          <div class="map-popup-title">${label}</div>
+          <div class="map-popup-sub">${SUBREGION_LABELS[p.subregion]||''} · ${p.bedrooms||''}</div>
+        </div>
+        ${p.maps ? `<a class="map-popup-btn" href="${p.maps}" target="_blank" onclick="event.stopPropagation()">Πλοήγηση</a>` : ''}
+      `);
   });
 
   points.forEach(p => {
@@ -430,7 +439,13 @@ function renderMapMarkers() {
     L.circleMarker([p.lat, p.lng], { radius: 6, fillColor: color, color: '#fff', weight: 1.5, fillOpacity: 1 })
       .addTo(map)
       .bindTooltip(p.name, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -8] })
-      .bindPopup(`<div class="map-popup-title">${p.name}</div><div class="map-popup-sub">${p.category}</div><a class="map-popup-btn" href="https://www.google.com/maps/search/?api=1&query=$${p.lat},${p.lng}" target="_blank">Πλοήγηση</a>`);
+      .bindPopup(`
+        <div class="clickable-popup-area" onclick="switchTab('points')">
+          <div class="map-popup-title">${p.name}</div>
+          <div class="map-popup-sub">${p.category}</div>
+        </div>
+        <a class="map-popup-btn" href="https://www.google.com/maps/search/?api=1&query=$${p.lat},${p.lng}" target="_blank" onclick="event.stopPropagation()">Πλοήγηση</a>
+      `);
   });
 }
 
