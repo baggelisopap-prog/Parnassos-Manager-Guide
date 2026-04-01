@@ -121,6 +121,12 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .point-card .name { font-size: 14px; color: var(--text); font-weight: 500; }
 .point-card .maps-link { color: var(--accent); display: flex; align-items: center; gap: 4px; font-size: 12px; }
 
+/* Custom Leaflet Marker Icons */
+.custom-map-marker { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); transition: transform 0.2s; }
+.custom-map-marker:active { transform: scale(0.9); }
+.marker-bubble { width: 100%; height: calc(100% - 6px); border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; z-index: 2; position: relative; }
+.marker-tail { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #fff; margin-top: -1px; z-index: 1; }
+
 /* Custom Leaflet Tooltips & Popups */
 .leaflet-popup-content-wrapper { background: var(--card) !important; color: var(--text) !important; border-radius: 12px !important; border: 1px solid var(--border) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; }
 .leaflet-popup-content { font-family: 'DM Sans', sans-serif !important; font-size: 13px !important; margin: 12px 14px !important; }
@@ -129,25 +135,30 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .map-popup-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 8px; }
 .map-popup-btn { display: inline-block; background: var(--accent); color: #fff; padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; margin-top: 4px; }
 
-/* NEW: Clickable popup area style */
+/* Clickable popup area style */
 .clickable-popup-area { cursor: pointer; padding-bottom: 4px; transition: opacity 0.15s; }
 .clickable-popup-area:active { opacity: 0.6; }
 
 /* Labels ON the pins */
 .leaflet-tooltip.pin-label {
     background-color: var(--card);
-    border: 1px solid var(--accent);
+    border: 1px solid var(--border);
     color: var(--text);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     border-radius: 6px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
-    padding: 3px 6px;
+    padding: 4px 8px;
     white-space: nowrap;
     font-family: 'DM Sans', sans-serif;
+    /* IMPORTANT: Makes the text clickable! */
+    pointer-events: auto !important; 
+    cursor: pointer;
+    transition: transform 0.1s, background 0.1s;
 }
-.leaflet-tooltip-top.pin-label:before { border-top-color: var(--accent) !important; }
-.leaflet-tooltip-bottom.pin-label:before { border-bottom-color: var(--accent) !important; }
+.leaflet-tooltip.pin-label:active { transform: scale(0.95); background: var(--card-hover); }
+.leaflet-tooltip-top.pin-label:before { border-top-color: var(--border) !important; }
+.leaflet-tooltip-bottom.pin-label:before { border-bottom-color: var(--border) !important; }
 
 /* Loading */
 .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 16px; }
@@ -232,8 +243,10 @@ const PIN = '1234';
 
 const SUBREGION_LABELS = { Agoriani:'Αγόριανη', Axladokampos:'Αχλαδόκαμπος', Livadi:'Λιβάδι', Zemenos:'Ζεμενό', Arachova:'Αράχωβα' };
 const SUBREGION_COLORS = { Agoriani:'#4a9eff', Axladokampos:'#34d399', Livadi:'#fbbf24', Zemenos:'#a78bfa', Arachova:'#f87171' };
-const CAT_COLORS = { 'Ψώνια':'#34d399', 'Καθημερινά':'#fbbf24', 'Οδηγίες':'#8899aa' };
-const CAT_ICONS = { 'Ψώνια':'🛒', 'Καθημερινά':'⛽', 'Οδηγίες':'➡️' };
+
+// Extended Icons for points
+const CAT_COLORS = { 'Ψώνια':'#34d399', 'Καθημερινά':'#fbbf24', 'Οδηγίες':'#8899aa', 'Σούπερ Μάρκετ':'#34d399', 'Καθαριστήριο':'#4a9eff', 'Φαγητό':'#f87171', 'Καφές':'#fbbf24' };
+const CAT_ICONS = { 'Ψώνια':'🛒', 'Καθημερινά':'⛽', 'Οδηγίες':'➡️', 'Σούπερ Μάρκετ':'🛒', 'Καθαριστήριο':'🧺', 'Φαγητό':'🍔', 'Καφές':'☕' };
 
 let properties = [], points = [], storages = [];
 let activeTab = 'home';
@@ -413,16 +426,28 @@ function initMap() {
 
 function renderMapMarkers() {
   if (!map) return;
-  map.eachLayer(l => { if (l instanceof L.CircleMarker) map.removeLayer(l); });
+  // Clear previous markers
+  map.eachLayer(l => { if (l instanceof L.Marker && !l._url) map.removeLayer(l); });
 
+  // 1. Render Properties (Houses)
   properties.forEach(p => {
     if (!p.lat || !p.lng) return;
     const color = SUBREGION_COLORS[p.subregion] || '#4a9eff';
     const label = p.nick || p.id;
     
-    L.circleMarker([p.lat, p.lng], { radius: 8, fillColor: color, color: '#fff', weight: 2, fillOpacity: 1 })
+    // Create Custom HTML Pin Icon
+    const customIcon = L.divIcon({
+      className: 'custom-map-marker',
+      html: `<div class="marker-bubble" style="background:${color}">🏠</div><div class="marker-tail"></div>`,
+      iconSize: [36, 42],
+      iconAnchor: [18, 42],
+      popupAnchor: [0, -40]
+    });
+    
+    L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
-      .bindTooltip(label, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -10] })
+      // interactive: true makes the text label clickable to open the popup!
+      .bindTooltip(label, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -45], interactive: true })
       .bindPopup(`
         <div class="clickable-popup-area" onclick="openDetail('${p.id}')">
           <div class="map-popup-title">${label}</div>
@@ -432,13 +457,24 @@ function renderMapMarkers() {
       `);
   });
 
+  // 2. Render Points (Markets, etc)
   points.forEach(p => {
     if (!p.lat || !p.lng) return;
     const color = CAT_COLORS[p.category] || '#8899aa';
+    const iconSym = CAT_ICONS[p.category] || '📍';
     
-    L.circleMarker([p.lat, p.lng], { radius: 6, fillColor: color, color: '#fff', weight: 1.5, fillOpacity: 1 })
+    // Create Custom HTML Pin Icon
+    const customIcon = L.divIcon({
+      className: 'custom-map-marker',
+      html: `<div class="marker-bubble" style="background:${color}">${iconSym}</div><div class="marker-tail"></div>`,
+      iconSize: [30, 36],
+      iconAnchor: [15, 36],
+      popupAnchor: [0, -34]
+    });
+
+    L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
-      .bindTooltip(p.name, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -8] })
+      .bindTooltip(p.name, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -38], interactive: true })
       .bindPopup(`
         <div class="clickable-popup-area" onclick="switchTab('points')">
           <div class="map-popup-title">${p.name}</div>
