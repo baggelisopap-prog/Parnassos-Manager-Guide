@@ -65,7 +65,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .page-header h2 { font-size: 20px; font-weight: 700; }
 .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
-/* Filter Chips (Βελτιωμένα με "Glow" Effect) */
+/* Filter Chips */
 .filters { display: flex; gap: 8px; overflow-x: auto; padding: 8px 16px 16px; scrollbar-width: none; }
 .filters::-webkit-scrollbar { display: none; }
 .chip { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--text-muted); cursor: pointer; font-size: 13px; font-weight: 700; white-space: nowrap; font-family: inherit; transition: all 0.2s ease; }
@@ -327,9 +327,11 @@ async function loadData() {
       gasDriver: r.Gas_Driver 
     }));
 
+    // ΔΙΟΡΘΩΣΗ ΓΙΑ ΤΑ ΣΗΜΕΙΑ (Διαβάζει το νέο Google_Maps_Link)
     points = pointsRaw.map(r => ({
       id: r.ID, name: r.Name, category: r.Category,
-      lat: parseFloat(r.Latitude), lng: parseFloat(r.Longitude), notes: r.Notes
+      lat: parseFloat(r.Latitude), lng: parseFloat(r.Longitude), notes: r.Notes,
+      maps: r.Google_Maps_Link 
     }));
 
     storages = storagesRaw.map(r => ({
@@ -485,7 +487,7 @@ function renderMapMarkers() {
       popupAnchor: [0, -40]
     });
     
-    const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
+    const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
 
     L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
@@ -512,7 +514,7 @@ function renderMapMarkers() {
       popupAnchor: [0, -34]
     });
 
-    const mapLink = `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
+    const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
 
     L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
@@ -540,7 +542,6 @@ function renderFilters() {
   const el = document.getElementById('filters');
   const subs = [...new Set(properties.map(p => p.subregion).filter(Boolean))];
   
-  // Το "ΟΛΑ" χρησιμοποιεί το accent color (μπλε) όταν είναι πατημένο
   const allStyle = activeFilter === 'all' 
     ? `background:var(--accent); color:#fff; border-color:var(--accent); box-shadow: 0 4px 12px rgba(74,158,255,0.4); transform: translateY(-2px);` 
     : ``;
@@ -551,7 +552,6 @@ function renderFilters() {
     const color = SUBREGION_COLORS[s] || '#4a9eff';
     const isActive = activeFilter === s;
     
-    // Δυναμικό στυλ ανάλογα με το χρώμα της υποπεριοχής
     const style = isActive 
       ? `background:${color}; color:#fff; border-color:${color}; box-shadow: 0 4px 12px ${color}66; transform: translateY(-2px);` 
       : `border-color:var(--border); color:var(--text-muted);`;
@@ -618,7 +618,7 @@ function openDetail(id) {
   document.getElementById('detailSub').textContent = SUBREGION_LABELS[p.subregion] || p.subregion || '';
   
   const mapsBtn = document.getElementById('detailMapsBtn');
-  mapsBtn.href = p.maps || `https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}`;
+  mapsBtn.href = p.maps || `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
   mapsBtn.style.display = p.maps || (p.lat && p.lng) ? 'flex' : 'none';
 
   let html = '';
@@ -650,7 +650,6 @@ function openDetail(id) {
     </div>`;
   }
 
-  // Καρτέλα Χώρου
   if (p.bedrooms || p.bathrooms || p.sqm || p.levels || p.doubleBeds || p.singleBeds || p.sofaDouble || p.sofaSingle || p.heatingSource) {
     html += `<div class="info-card"><div class="info-title">🏠 Χώρος</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -669,7 +668,6 @@ function openDetail(id) {
 
   const combinedOtherSpaces = [p.otherRooms, p.otherSpaces].filter(Boolean).join('<br><br>');
 
-  // Νέα δυναμική λίστα επαφών ΜΕ CLICKABLE TELEPHONES
   let contactsHtml = [];
   if (p.plumber) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">💧 Υδραυλικός: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.plumber)}</span></div>`);
   if (p.electrician) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">⚡ Ηλεκτρολόγος: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.electrician)}</span></div>`);
@@ -745,7 +743,7 @@ function renderStorages() {
           <span style="color:var(--text)">${p.nick || p.id}</span>
           <span class="area">${SUBREGION_LABELS[p.subregion]||''}</span>
         </div>`).join('')}
-        <a class="nav-link" href="https://www.google.com/maps/search/?api=1&query=LAT,LNG{s.lat},${s.lng}" target="_blank" rel="noopener">
+        <a class="nav-link" href="https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη
         </a>
       </div>
@@ -773,7 +771,9 @@ function renderPoints() {
     const icon = CAT_ICONS[cat] || '📍';
     html += `<div style="margin-bottom:20px"><div class="point-cat-title" style="color:${color}">${icon} ${cat}</div>`;
     pts.forEach(p => {
-      html += `<a class="point-card" href="https://www.google.com/maps/search/?api=1&query=LAT,LNG{p.lat},${p.lng}" target="_blank" rel="noopener">
+      // Διορθωμένο link για την κάρτα των Σημείων (Points)
+      const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+      html += `<a class="point-card" href="${mapLink}" target="_blank" rel="noopener">
         <span class="name">${p.name}</span>
         <span class="maps-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη</span>
       </a>`;
