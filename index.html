@@ -151,7 +151,6 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
     padding: 4px 8px;
     white-space: nowrap;
     font-family: 'DM Sans', sans-serif;
-    /* IMPORTANT: Makes the text clickable! */
     pointer-events: auto !important; 
     cursor: pointer;
     transition: transform 0.1s, background 0.1s;
@@ -426,16 +425,13 @@ function initMap() {
 
 function renderMapMarkers() {
   if (!map) return;
-  // Clear previous markers
   map.eachLayer(l => { if (l instanceof L.Marker && !l._url) map.removeLayer(l); });
 
-  // 1. Render Properties (Houses)
   properties.forEach(p => {
     if (!p.lat || !p.lng) return;
     const color = SUBREGION_COLORS[p.subregion] || '#4a9eff';
     const label = p.nick || p.id;
     
-    // Create Custom HTML Pin Icon
     const customIcon = L.divIcon({
       className: 'custom-map-marker',
       html: `<div class="marker-bubble" style="background:${color}">🏠</div><div class="marker-tail"></div>`,
@@ -446,24 +442,21 @@ function renderMapMarkers() {
     
     L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(map)
-      // interactive: true makes the text label clickable to open the popup!
       .bindTooltip(label, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -45], interactive: true })
       .bindPopup(`
         <div class="clickable-popup-area" onclick="openDetail('${p.id}')">
           <div class="map-popup-title">${label}</div>
           <div class="map-popup-sub">${SUBREGION_LABELS[p.subregion]||''} · ${p.bedrooms||''}</div>
         </div>
-        ${p.maps ? `<a class="map-popup-btn" href="${p.maps}" target="_blank" onclick="event.stopPropagation()">Πλοήγηση</a>` : ''}
+        ${p.maps ? `<a class="map-popup-btn" href="${p.maps}" target="_blank" onclick="event.stopPropagation()">Πλοήγηση</a>` : `<a class="map-popup-btn" href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" onclick="event.stopPropagation()">Πλοήγηση</a>`}
       `);
   });
 
-  // 2. Render Points (Markets, etc)
   points.forEach(p => {
     if (!p.lat || !p.lng) return;
     const color = CAT_COLORS[p.category] || '#8899aa';
     const iconSym = CAT_ICONS[p.category] || '📍';
     
-    // Create Custom HTML Pin Icon
     const customIcon = L.divIcon({
       className: 'custom-map-marker',
       html: `<div class="marker-bubble" style="background:${color}">${iconSym}</div><div class="marker-tail"></div>`,
@@ -480,7 +473,7 @@ function renderMapMarkers() {
           <div class="map-popup-title">${p.name}</div>
           <div class="map-popup-sub">${p.category}</div>
         </div>
-        <a class="map-popup-btn" href="https://www.google.com/maps/search/?api=1&query=$${p.lat},${p.lng}" target="_blank" onclick="event.stopPropagation()">Πλοήγηση</a>
+        <a class="map-popup-btn" href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" onclick="event.stopPropagation()">Πλοήγηση</a>
       `);
   });
 }
@@ -546,7 +539,7 @@ function openDetail(id) {
   document.getElementById('detailTitle').textContent = p.nick || p.id;
   document.getElementById('detailSub').textContent = SUBREGION_LABELS[p.subregion] || p.subregion || '';
   const mapsBtn = document.getElementById('detailMapsBtn');
-  mapsBtn.href = p.maps || `https://www.google.com/maps/search/?api=1&query=$${p.lat},${p.lng}`;
+  mapsBtn.href = p.maps || `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
   mapsBtn.style.display = p.maps || (p.lat && p.lng) ? 'flex' : 'none';
 
   let html = '';
@@ -652,7 +645,7 @@ function renderStorages() {
           <span style="color:var(--text)">${p.nick || p.id}</span>
           <span class="area">${SUBREGION_LABELS[p.subregion]||''}</span>
         </div>`).join('')}
-        <a class="nav-link" href="https://www.google.com/maps/search/?api=1&query=$${s.lat},${s.lng}" target="_blank" rel="noopener">
+        <a class="nav-link" href="https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Πλοηγήσου
         </a>
       </div>
@@ -680,7 +673,7 @@ function renderPoints() {
     const icon = CAT_ICONS[cat] || '📍';
     html += `<div style="margin-bottom:20px"><div class="point-cat-title" style="color:${color}">${icon} ${cat}</div>`;
     pts.forEach(p => {
-      html += `<a class="point-card" href="https://www.google.com/maps/search/?api=1&query=$${p.lat},${p.lng}" target="_blank" rel="noopener">
+      html += `<a class="point-card" href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" rel="noopener">
         <span class="name">${p.name}</span>
         <span class="maps-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Maps</span>
       </a>`;
