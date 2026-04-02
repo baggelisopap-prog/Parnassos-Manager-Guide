@@ -88,23 +88,34 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .tag-in { background: rgba(52,211,153,0.1); color: var(--success); }
 .tag-out { background: rgba(251,191,36,0.1); color: var(--warning); }
 
-/* Property Detail */
-.detail-view { position: fixed; inset: 0; background: var(--bg); z-index: 50; overflow-y: auto; transform: translateX(100%); transition: transform 0.3s ease; }
+/* Property Detail & Navigation */
+.detail-view { position: fixed; inset: 0; background: var(--bg); z-index: 50; overflow-y: auto; overflow-x: hidden; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 .detail-view.open { transform: translateX(0); }
-.detail-header { padding: 16px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; background: var(--bg); z-index: 5; border-bottom: 1px solid var(--border); }
-.back-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 4px; display: flex; }
-.maps-btn { margin-left: auto; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px; font-family: inherit; }
+.detail-header { padding: 12px 16px; display: flex; align-items: center; gap: 8px; position: sticky; top: 0; background: rgba(15,20,25,0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 5; border-bottom: 1px solid var(--border); }
+.back-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 4px; display: flex; flex-shrink: 0; }
+
+/* Νέα Κουμπιά Next/Prev στην κεφαλίδα */
+.detail-nav-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; flex-shrink: 0; transition: background 0.2s; }
+.detail-nav-btn:active { background: rgba(255,255,255,0.15); }
+.title-wrapper { flex: 1; text-align: center; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;}
+.title-wrapper #detailTitle { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+.title-wrapper #detailSub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;}
+
+.maps-btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; font-family: inherit; flex-shrink: 0; }
 .detail-body { padding: 16px; }
+
+/* Quick Grid & Info Cards */
 .quick-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
 .quick-box { background: var(--card); border-radius: 10px; padding: 12px 10px; text-align: center; border: 1px solid var(--border); }
-.quick-box .icon { color: var(--accent); display: flex; justify-content: center; margin-bottom: 6px; }
+.quick-box .icon { color: var(--accent); display: flex; justify-content: center; margin-bottom: 6px; font-size: 18px; }
 .quick-box .val { font-size: 15px; font-weight: 700; }
 .quick-box .lbl { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 .info-card { background: var(--card); border-radius: 12px; padding: 14px; margin-bottom: 16px; border: 1px solid var(--border); }
-.info-card .info-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.info-card .info-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;}
 .info-row { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
 .info-row span { color: var(--text); }
-.copy-btn { background: rgba(74,158,255,0.15); border: none; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--accent); font-size: 11px; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
+.copy-btn { background: rgba(74,158,255,0.15); border: none; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--accent); font-size: 11px; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; transition: background 0.2s;}
+.copy-btn:active { background: rgba(74,158,255,0.3); }
 .copy-btn.copied { background: var(--success); color: var(--bg); }
 
 /* Horizontal Contacts Section */
@@ -126,7 +137,6 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .accordion-arrow { font-size: 18px; color: var(--text-muted); transition: transform 0.2s, color 0.2s; }
 .accordion-arrow.open { transform: rotate(180deg); color: #fff; }
 .accordion-body { padding: 0 16px 14px; font-size: 13px; line-height: 1.6; color: var(--text); }
-.storage-badge { margin-top: 12px; background: rgba(74,158,255,0.08); border-radius: 10px; padding: 10px 14px; border: 1px solid var(--border); font-size: 12px; color: var(--accent); font-weight: 600; }
 .storage-card { margin: 0 16px 10px; background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; }
 .storage-header { width: 100%; padding: 16px; background: none; border: none; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; font-family: inherit; }
 .storage-name { font-size: 15px; font-weight: 700; color: var(--text); }
@@ -154,19 +164,6 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .marker-bubble { width: 100%; height: calc(100% - 6px); border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; z-index: 2; position: relative; }
 .marker-tail { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #fff; margin-top: -1px; z-index: 1; }
 
-/* Custom Leaflet Tooltips & Popups */
-.leaflet-popup-content-wrapper { background: var(--card) !important; color: var(--text) !important; border-radius: 12px !important; border: 1px solid var(--border) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; }
-.leaflet-popup-content { font-family: 'DM Sans', sans-serif !important; font-size: 13px !important; margin: 12px 14px !important; }
-.leaflet-popup-tip { background: var(--card) !important; }
-.map-popup-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
-.map-popup-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 8px; }
-.map-popup-btn { display: inline-block; background: var(--accent); color: #fff; padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; margin-top: 4px; }
-
-/* Clickable popup area style */
-.clickable-popup-area { cursor: pointer; padding-bottom: 4px; transition: opacity 0.15s; }
-.clickable-popup-area:active { opacity: 0.6; }
-
-/* Labels ON the pins */
 .leaflet-tooltip.pin-label {
     background-color: var(--card); border: 1px solid var(--border); color: var(--text);
     box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius: 6px; font-size: 12px;
@@ -225,7 +222,6 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
     </div>
 
     <div id="global-map"></div>
-    
     <div id="map-overlay" onclick="switchTab('map')"></div>
 
   </div>
@@ -234,9 +230,14 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 
 <div class="detail-view" id="detailView">
   <div class="detail-header">
-    <button class="back-btn" onclick="closeDetail()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
-    <div><div id="detailTitle" style="font-size:18px;font-weight:700"></div><div id="detailSub" style="font-size:12px;color:var(--text-muted)"></div></div>
-    <a id="detailMapsBtn" class="maps-btn" href="#" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη</a>
+    <button class="back-btn" onclick="closeDetail()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    <button class="detail-nav-btn" onclick="navigateDetail(-1)">❮</button>
+    <div class="title-wrapper">
+      <div id="detailTitle"></div>
+      <div id="detailSub"></div>
+    </div>
+    <button class="detail-nav-btn" onclick="navigateDetail(1)">❯</button>
+    <a id="detailMapsBtn" class="maps-btn" href="#" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></a>
   </div>
   <div class="detail-body" id="detailBody"></div>
 </div>
@@ -258,15 +259,17 @@ let activeFilter = 'all';
 let map = null;
 let markersLayer = null;
 
+// Μεταβλητές για την πλοήγηση μέσα στις καρτέλες (Next/Prev)
+let currentPropList = [];
+let currentPropIndex = -1;
+
 // ─── HELPER: Εξαγωγή Ονόματος και Τηλεφώνου ─────────────────────────────
 function extractContact(str) {
   if (!str) return null;
   const strStr = String(str);
-  // Βρίσκει τηλέφωνα με τουλάχιστον 10 ψηφία, με ή χωρίς κενά, παύλες κτλ.
   const match = strStr.match(/(\+?\d[\d\s-]{8,}\d)/);
   if (match) {
-      const num = match[1].replace(/[\s-]/g, ''); // Καθαρίζει το νούμερο
-      // Αφαιρεί το νούμερο από το αρχικό string, καθαρίζει τα κενά (new lines) και τις παύλες στις άκρες
+      const num = match[1].replace(/[\s-]/g, '');
       const name = strStr.replace(match[1], '').replace(/[\n\r]/g, ' ').replace(/^[-:\s]+|[-:\s]+$/g, '').trim();
       return { phone: num, name: name };
   }
@@ -456,6 +459,48 @@ function switchTab(id) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
 }
 
+// ─── SWIPE EVENT LISTENERS ΓΙΑ ΠΛΟΗΓΗΣΗ ΣΤΗΝ ΚΑΡΤΕΛΑ ──────────────────────
+const detailViewEl = document.getElementById('detailView');
+let touchStartX = 0;
+let touchStartY = 0;
+
+detailViewEl.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, {passive: true});
+
+detailViewEl.addEventListener('touchend', e => {
+  let touchEndX = e.changedTouches[0].screenX;
+  let touchEndY = e.changedTouches[0].screenY;
+  
+  let deltaX = touchEndX - touchStartX;
+  let deltaY = touchEndY - touchStartY;
+  
+  // Πρέπει να είναι οριζόντιο swipe (deltaX > deltaY) και αρκετά μεγάλο
+  if (Math.abs(deltaX) > 70 && Math.abs(deltaX) > Math.abs(deltaY)) {
+    if (deltaX < 0) {
+      navigateDetail(1); // Swipe αριστερά -> Επόμενο
+    } else {
+      navigateDetail(-1); // Swipe δεξιά -> Προηγούμενο
+    }
+  }
+}, {passive: true});
+
+// Συνάρτηση Πλοήγησης (Next/Prev)
+function navigateDetail(direction) {
+  if (currentPropIndex === -1 || currentPropList.length === 0) return;
+  
+  let newIndex = currentPropIndex + direction;
+  
+  // Αν φτάσει στο τέλος, γυρνάει στην αρχή και το αντίστροφο (Loop)
+  if (newIndex < 0) newIndex = currentPropList.length - 1;
+  if (newIndex >= currentPropList.length) newIndex = 0;
+  
+  // Ανοίγει το νέο σπίτι, χωρίς να κλείσει την καρτέλα, για ταχύτητα!
+  openDetail(currentPropList[newIndex].id);
+}
+
+
 // ─── MAP (Google Maps Integration) ───────────────────────────────────────
 function initMap() {
   if (map) return;
@@ -591,6 +636,10 @@ function renderProperties() {
   const el = document.getElementById('propList');
   const filtered = activeFilter === 'all' ? properties : properties.filter(p => p.subregion === activeFilter);
   const grouped = {};
+  
+  // Αποθήκευση της τρέχουσας λίστας με τη σωστή σειρά για τα κουμπιά Next/Prev
+  currentPropList = [];
+
   filtered.forEach(p => {
     const label = SUBREGION_LABELS[p.subregion] || p.subregion || 'Άλλο';
     (grouped[label] = grouped[label] || []).push(p);
@@ -600,6 +649,9 @@ function renderProperties() {
   Object.entries(grouped).forEach(([region, props]) => {
     html += `<div class="card-group"><div class="card-group-title">${region}</div>`;
     props.forEach((p, i) => {
+      
+      currentPropList.push(p); // Προσθήκη στη λίστα πλοήγησης
+
       const color = SUBREGION_COLORS[p.subregion] || '#4a9eff';
       
       let guestStr = '';
@@ -639,10 +691,20 @@ function renderProperties() {
   el.innerHTML = html;
 }
 
-// ─── DETAIL VIEW ──────────────────────────────────────────────────────────
+// ─── DETAIL VIEW (Με νέο layout και Navigation) ──────────────────────────
 function openDetail(id) {
   const p = properties.find(x => x.id === id);
   if (!p) return;
+  
+  // Ενημέρωση του τρέχοντος index για να δουλεύουν τα βελάκια/swipe
+  currentPropIndex = currentPropList.findIndex(x => x.id === id);
+  
+  // Αν μπήκαμε από τον χάρτη απευθείας και το φίλτρο δεν ταιριάζει, το βάζουμε στη global list
+  if (currentPropIndex === -1) {
+    currentPropList = properties;
+    currentPropIndex = currentPropList.findIndex(x => x.id === id);
+  }
+
   document.getElementById('detailTitle').textContent = p.nick || p.id;
   document.getElementById('detailSub').textContent = SUBREGION_LABELS[p.subregion] || p.subregion || '';
   
@@ -671,15 +733,33 @@ function openDetail(id) {
     html += '</div>';
   }
 
-  if (p.wifi || p.wifiPass) {
-    html += `<div class="info-card">
-      <div class="info-title">📶 WiFi</div>
-      ${p.wifi ? `<div class="info-row">Network: <span>${p.wifi}</span></div>` : ''}
-      ${p.wifiPass ? `<div class="info-row">Pass: <span style="font-family:monospace">${p.wifiPass}</span><button class="copy-btn" onclick="copyText(this,'${p.wifiPass}')">📋 Copy</button></div>` : ''}
-    </div>`;
-  }
+  // ΝΕΟ ΔΙΠΛΟ GRID ΓΙΑ ΑΠΟΘΗΚΗ/ΘΕΡΜΑΝΣΗ & WIFI
+  html += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+    
+    <div class="info-card" style="margin-bottom:0; padding:12px; display:flex; flex-direction:column; justify-content:center;">
+      <div class="info-title" style="margin-bottom:6px; font-size:11px; color:var(--text-muted);">📦 Αποθήκη & ♨️ Θέρμανση</div>
+      <div style="font-size:14px; font-weight:700; color:var(--accent); margin-bottom:4px; line-height:1.2;">
+        ${p.storage || '<span style="color:var(--text-dim);font-weight:500;">Χωρίς Αποθήκη</span>'}
+      </div>
+      ${p.heatingSource ? `<div style="font-size:12px; color:var(--text); line-height:1.2;">🔥 ${p.heatingSource}</div>` : ''}
+    </div>
 
-  if (p.bedrooms || p.bathrooms || p.sqm || p.levels || p.doubleBeds || p.singleBeds || p.sofaDouble || p.sofaSingle || p.heatingSource) {
+    <div class="info-card" style="margin-bottom:0; padding:12px; display:flex; flex-direction:column; justify-content:center;">
+      <div class="info-title" style="margin-bottom:6px; font-size:11px; color:var(--text-muted);">📶 WiFi</div>
+      <div style="font-size:14px; font-weight:700; color:var(--text); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+        ${p.wifi || '<span style="color:var(--text-dim);font-weight:500;">—</span>'}
+      </div>
+      ${p.wifiPass ? `
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-family:monospace; font-size:12px; color:var(--text-muted);">${p.wifiPass}</span>
+          <button class="copy-btn" style="padding:2px 6px; font-size:10px; margin:0;" onclick="copyText(this,'${p.wifiPass}')">Copy</button>
+        </div>
+      ` : ''}
+    </div>
+
+  </div>`;
+
+  if (p.bedrooms || p.bathrooms || p.sqm || p.levels || p.doubleBeds || p.singleBeds || p.sofaDouble || p.sofaSingle) {
     html += `<div class="info-card"><div class="info-title">🏠 Χώρος</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
         ${p.bedrooms ? `<div class="info-row">Υπνοδωμάτια: <span>${p.bedrooms}</span></div>` : ''}
@@ -690,12 +770,11 @@ function openDetail(id) {
         ${p.singleBeds ? `<div class="info-row">Μονά κρεβ.: <span>${p.singleBeds}</span></div>` : ''}
         ${p.sofaDouble ? `<div class="info-row">Καναπές διπλ.: <span>${p.sofaDouble}</span></div>` : ''}
         ${p.sofaSingle ? `<div class="info-row">Καναπές μον.: <span>${p.sofaSingle}</span></div>` : ''}
-        ${p.heatingSource ? `<div class="info-row" style="grid-column: 1 / -1; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border);">Πηγή Θέρμανσης: <span style="color:var(--accent); font-weight:700;">${p.heatingSource}</span></div>` : ''}
       </div>
     </div>`;
   }
 
-  // ΝΕΑ ΟΡΙΖΟΝΤΙΑ ΛΙΣΤΑ ΕΠΑΦΩΝ & ΤΕΧΝΙΚΩΝ (Εμφανίζει το Όνομα και το Νούμερο)
+  // ΕΠΑΦΕΣ & ΤΕΧΝΙΚΟΙ
   let contactsCards = '';
   let hasContacts = false;
   const contactsList = [
@@ -763,12 +842,11 @@ function openDetail(id) {
     </div>`;
   });
 
-  if (p.storage) {
-    html += `<div class="storage-badge">📦 ${p.storage}</div>`;
-  }
   html += '<div style="height:80px"></div>';
 
   document.getElementById('detailBody').innerHTML = html;
+  
+  // Αν δεν είναι ήδη ανοιχτό, άνοιξέ το
   document.getElementById('detailView').classList.add('open');
 }
 
@@ -788,7 +866,7 @@ function copyText(btn, text) {
   navigator.clipboard.writeText(text);
   btn.classList.add('copied');
   btn.textContent = '✓ OK';
-  setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '📋 Copy'; }, 1500);
+  setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy'; }, 1500);
 }
 
 // ─── STORAGES ────────────────────────────────────────────────────────────
