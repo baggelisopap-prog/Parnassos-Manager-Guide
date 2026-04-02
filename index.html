@@ -93,13 +93,26 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .detail-view.open { transform: translateX(0); }
 .detail-header { padding: 12px 16px; display: flex; align-items: center; gap: 8px; position: sticky; top: 0; background: rgba(15,20,25,0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 5; border-bottom: 1px solid var(--border); }
 .back-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 4px; display: flex; flex-shrink: 0; }
+
 .detail-nav-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; flex-shrink: 0; transition: background 0.2s; }
 .detail-nav-btn:active { background: rgba(255,255,255,0.15); }
 .title-wrapper { flex: 1; text-align: center; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;}
 .title-wrapper #detailTitle { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 .title-wrapper #detailSub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;}
 .maps-btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; font-family: inherit; flex-shrink: 0; }
+
 .detail-body { padding: 16px; }
+
+/* ─── ANIMATIONS ΓΙΑ SWIPE/NEXT/PREV ─── */
+@keyframes slideOutLeft { to { transform: translateX(-50px); opacity: 0; } }
+@keyframes slideOutRight { to { transform: translateX(50px); opacity: 0; } }
+@keyframes slideInRight { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideInLeft { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.slide-out-next { animation: slideOutLeft 0.15s cubic-bezier(0.4, 0, 1, 1) forwards; }
+.slide-out-prev { animation: slideOutRight 0.15s cubic-bezier(0.4, 0, 1, 1) forwards; }
+.slide-in-next { animation: slideInRight 0.2s cubic-bezier(0.0, 0, 0.2, 1) forwards; }
+.slide-in-prev { animation: slideInLeft 0.2s cubic-bezier(0.0, 0, 0.2, 1) forwards; }
 
 /* Quick Grid & Info Cards */
 .quick-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
@@ -135,20 +148,6 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .accordion-arrow { font-size: 18px; color: var(--text-muted); transition: transform 0.2s, color 0.2s; }
 .accordion-arrow.open { transform: rotate(180deg); color: #fff; }
 .accordion-body { padding: 0 16px 14px; font-size: 13px; line-height: 1.6; color: var(--text); }
-.storage-card { margin: 0 16px 10px; background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; }
-.storage-header { width: 100%; padding: 16px; background: none; border: none; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; font-family: inherit; }
-.storage-name { font-size: 15px; font-weight: 700; color: var(--text); }
-.storage-loc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.storage-body { padding: 0 16px 16px; border-top: 1px solid var(--border); }
-.storage-prop { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-.storage-prop .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-.storage-prop .area { margin-left: auto; font-size: 11px; color: var(--text-muted); }
-.nav-link { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; background: var(--accent); color: #fff; border-radius: 10px; padding: 10px; text-decoration: none; font-size: 13px; font-weight: 600; font-family: inherit; }
-.point-cat-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; padding: 0 16px; }
-.point-card { display: flex; align-items: center; justify-content: space-between; margin: 0 16px 8px; background: var(--card); border-radius: 12px; padding: 14px 16px; border: 1px solid var(--border); text-decoration: none; transition: background 0.15s; }
-.point-card:active { background: var(--card-hover); }
-.point-card .name { font-size: 14px; color: var(--text); font-weight: 500; }
-.point-card .maps-link { color: var(--accent); display: flex; align-items: center; gap: 4px; font-size: 12px; }
 
 /* Cluster Custom Colors */
 .marker-cluster-small { background-color: rgba(74, 158, 255, 0.6); }
@@ -260,6 +259,7 @@ let markersLayer = null;
 // Μεταβλητές για την πλοήγηση μέσα στις καρτέλες (Next/Prev)
 let currentPropList = [];
 let currentPropIndex = -1;
+let isAnimating = false; // Προστασία από πολλαπλά κλικ
 
 // ─── HELPER: Εξαγωγή Ονόματος και Τηλεφώνου ─────────────────────────────
 function extractContact(str) {
@@ -329,15 +329,12 @@ async function loadData() {
       directions: r.Check_in_Directions, houseInstructions: r.House_Instructions,
       parking: r.Parking, fireplace: r.Fireplace, hotWater: r.Hot_Water, ac: r.AC,
       
-      // Τεχνικοί
       plumber: r.Plumber,
       electrician: r.Electrician,
       burnerTech: r.Burner_Technician,
       oilSupplier: r.Oil_Supplier,
       gasSupplier: r.Gas_Supplier,
       gasDriver: r.Gas_Driver,
-      
-      // ΝΕΟ: Fuel δυναμικά από το Excel
       fuel: r.Fuel
     }));
 
@@ -462,7 +459,7 @@ function switchTab(id) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
 }
 
-// ─── SWIPE EVENT LISTENERS ΓΙΑ ΠΛΟΗΓΗΣΗ ΣΤΗΝ ΚΑΡΤΕΛΑ ──────────────────────
+// ─── ANIMATION ΛΟΓΙΚΗ ΓΙΑ ΤΟ NEXT/PREV SWIPE ─────────────────────────────
 const detailViewEl = document.getElementById('detailView');
 let touchStartX = 0;
 let touchStartY = 0;
@@ -481,19 +478,56 @@ detailViewEl.addEventListener('touchend', e => {
   
   if (Math.abs(deltaX) > 70 && Math.abs(deltaX) > Math.abs(deltaY)) {
     if (deltaX < 0) {
-      navigateDetail(1); // Swipe αριστερά -> Επόμενο
+      navigateDetail(1); // Swipe left -> Next
     } else {
-      navigateDetail(-1); // Swipe δεξιά -> Προηγούμενο
+      navigateDetail(-1); // Swipe right -> Prev
     }
   }
 }, {passive: true});
 
+// H συνάρτηση που αναλαμβάνει να αλλάξει σελίδα με ωραίο εφέ (Transitions)
 function navigateDetail(direction) {
-  if (currentPropIndex === -1 || currentPropList.length === 0) return;
-  let newIndex = currentPropIndex + direction;
-  if (newIndex < 0) newIndex = currentPropList.length - 1;
-  if (newIndex >= currentPropList.length) newIndex = 0;
-  openDetail(currentPropList[newIndex].id);
+  if (currentPropIndex === -1 || currentPropList.length === 0 || isAnimating) return;
+  isAnimating = true;
+
+  const bodyEl = document.getElementById('detailBody');
+  const titleEl = document.querySelector('.title-wrapper');
+  
+  // Προσδιορισμός κατεύθυνσης animation
+  const outClass = direction === 1 ? 'slide-out-next' : 'slide-out-prev';
+  const inClass = direction === 1 ? 'slide-in-next' : 'slide-in-prev';
+
+  // 1. Ξεκινάμε το animation της εξόδου
+  bodyEl.classList.add(outClass);
+  titleEl.classList.add(outClass);
+
+  // 2. Μόλις βγει (μετά από 150ms), αλλάζουμε τα δεδομένα
+  setTimeout(() => {
+    let newIndex = currentPropIndex + direction;
+    if (newIndex < 0) newIndex = currentPropList.length - 1;
+    if (newIndex >= currentPropList.length) newIndex = 0;
+    
+    // Αλλάζουμε τα δεδομένα
+    openDetail(currentPropList[newIndex].id);
+    
+    // Επαναφορά Scrollbar στην κορυφή του νέου σπιτιού!
+    document.getElementById('detailView').scrollTop = 0;
+    
+    // Αφαιρούμε τις κλάσεις της εξόδου
+    bodyEl.classList.remove(outClass);
+    titleEl.classList.remove(outClass);
+    
+    // 3. Προσθέτουμε την κλάση της εισόδου
+    bodyEl.classList.add(inClass);
+    titleEl.classList.add(inClass);
+    
+    // 4. Καθαρίζουμε την κλάση της εισόδου και ανοίγουμε το κλείδωμα
+    setTimeout(() => {
+      bodyEl.classList.remove(inClass);
+      titleEl.classList.remove(inClass);
+      isAnimating = false;
+    }, 200); // Διάρκεια εισόδου
+  }, 150); // Διάρκεια εξόδου
 }
 
 
@@ -817,6 +851,7 @@ function openDetail(id) {
     { title: '🚪 Άλλοι Χώροι', content: combinedOtherSpaces },
     { title: '🅿️ Parking', content: p.parking },
     { title: '🔥 Τζάκι', content: p.fireplace },
+    { title: '♨️ Θέρμανση', content: p.heating },
     { title: '🚿 Ζεστό Νερό', content: p.hotWater },
   ];
 
