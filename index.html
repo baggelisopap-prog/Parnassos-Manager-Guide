@@ -93,23 +93,21 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .detail-view.open { transform: translateX(0); }
 .detail-header { padding: 12px 16px; display: flex; align-items: center; gap: 8px; position: sticky; top: 0; background: rgba(15,20,25,0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 5; border-bottom: 1px solid var(--border); }
 .back-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 4px; display: flex; flex-shrink: 0; }
-
-/* Νέα Κουμπιά Next/Prev στην κεφαλίδα */
 .detail-nav-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; flex-shrink: 0; transition: background 0.2s; }
 .detail-nav-btn:active { background: rgba(255,255,255,0.15); }
 .title-wrapper { flex: 1; text-align: center; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;}
 .title-wrapper #detailTitle { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 .title-wrapper #detailSub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;}
-
 .maps-btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; font-family: inherit; flex-shrink: 0; }
 .detail-body { padding: 16px; }
 
 /* Quick Grid & Info Cards */
-.quick-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
-.quick-box { background: var(--card); border-radius: 10px; padding: 12px 10px; text-align: center; border: 1px solid var(--border); }
+.quick-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+.quick-box { background: var(--card); border-radius: 10px; padding: 12px 6px; text-align: center; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
 .quick-box .icon { color: var(--accent); display: flex; justify-content: center; margin-bottom: 6px; font-size: 18px; }
-.quick-box .val { font-size: 15px; font-weight: 700; }
-.quick-box .lbl { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.quick-box .val { font-size: 14px; font-weight: 700; white-space: nowrap; width: 100%; overflow: hidden; text-overflow: ellipsis;}
+.quick-box .lbl { font-size: 10px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; }
+
 .info-card { background: var(--card); border-radius: 12px; padding: 14px; margin-bottom: 16px; border: 1px solid var(--border); }
 .info-card .info-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;}
 .info-row { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
@@ -326,16 +324,21 @@ async function loadData() {
       bathrooms: r.Bathrooms, levels: r.Levels, sqm: r.Sqm,
       otherRooms: r.Other_Rooms, otherSpaces: r.Other_Spaces,
       kitchen: r.Kitchen_Amenities, bathroom: r.Bathroom_Amenities, living: r.Living_Room_Amenities,
-      heatingSource: r.Heating_Source, checkin: r.Check_in_Time, checkout: r.Check_out_Time,
+      checkin: r.Check_in_Time, checkout: r.Check_out_Time,
       wifi: r.Wifi_Network, wifiPass: r.Wifi_Password,
       directions: r.Check_in_Directions, houseInstructions: r.House_Instructions,
-      parking: r.Parking, fireplace: r.Fireplace, heating: r.Heating, hotWater: r.Hot_Water, ac: r.AC,
+      parking: r.Parking, fireplace: r.Fireplace, hotWater: r.Hot_Water, ac: r.AC,
+      
+      // Τεχνικοί
       plumber: r.Plumber,
       electrician: r.Electrician,
       burnerTech: r.Burner_Technician,
       oilSupplier: r.Oil_Supplier,
       gasSupplier: r.Gas_Supplier,
-      gasDriver: r.Gas_Driver 
+      gasDriver: r.Gas_Driver,
+      
+      // ΝΕΟ: Fuel δυναμικά από το Excel
+      fuel: r.Fuel
     }));
 
     points = pointsRaw.map(r => ({
@@ -476,7 +479,6 @@ detailViewEl.addEventListener('touchend', e => {
   let deltaX = touchEndX - touchStartX;
   let deltaY = touchEndY - touchStartY;
   
-  // Πρέπει να είναι οριζόντιο swipe (deltaX > deltaY) και αρκετά μεγάλο
   if (Math.abs(deltaX) > 70 && Math.abs(deltaX) > Math.abs(deltaY)) {
     if (deltaX < 0) {
       navigateDetail(1); // Swipe αριστερά -> Επόμενο
@@ -486,17 +488,11 @@ detailViewEl.addEventListener('touchend', e => {
   }
 }, {passive: true});
 
-// Συνάρτηση Πλοήγησης (Next/Prev)
 function navigateDetail(direction) {
   if (currentPropIndex === -1 || currentPropList.length === 0) return;
-  
   let newIndex = currentPropIndex + direction;
-  
-  // Αν φτάσει στο τέλος, γυρνάει στην αρχή και το αντίστροφο (Loop)
   if (newIndex < 0) newIndex = currentPropList.length - 1;
   if (newIndex >= currentPropList.length) newIndex = 0;
-  
-  // Ανοίγει το νέο σπίτι, χωρίς να κλείσει την καρτέλα, για ταχύτητα!
   openDetail(currentPropList[newIndex].id);
 }
 
@@ -511,7 +507,6 @@ function initMap() {
     attribution: '© Google Maps'
   }).addTo(map);
 
-  // Marker Cluster Initialization
   markersLayer = L.markerClusterGroup({
     showCoverageOnHover: false,
     maxClusterRadius: 40,
@@ -637,7 +632,6 @@ function renderProperties() {
   const filtered = activeFilter === 'all' ? properties : properties.filter(p => p.subregion === activeFilter);
   const grouped = {};
   
-  // Αποθήκευση της τρέχουσας λίστας με τη σωστή σειρά για τα κουμπιά Next/Prev
   currentPropList = [];
 
   filtered.forEach(p => {
@@ -650,7 +644,7 @@ function renderProperties() {
     html += `<div class="card-group"><div class="card-group-title">${region}</div>`;
     props.forEach((p, i) => {
       
-      currentPropList.push(p); // Προσθήκη στη λίστα πλοήγησης
+      currentPropList.push(p); 
 
       const color = SUBREGION_COLORS[p.subregion] || '#4a9eff';
       
@@ -691,15 +685,12 @@ function renderProperties() {
   el.innerHTML = html;
 }
 
-// ─── DETAIL VIEW (Με νέο layout και Navigation) ──────────────────────────
+// ─── DETAIL VIEW ──────────────────────────────────────────────────────────
 function openDetail(id) {
   const p = properties.find(x => x.id === id);
   if (!p) return;
   
-  // Ενημέρωση του τρέχοντος index για να δουλεύουν τα βελάκια/swipe
   currentPropIndex = currentPropList.findIndex(x => x.id === id);
-  
-  // Αν μπήκαμε από τον χάρτη απευθείας και το φίλτρο δεν ταιριάζει, το βάζουμε στη global list
   if (currentPropIndex === -1) {
     currentPropList = properties;
     currentPropIndex = currentPropList.findIndex(x => x.id === id);
@@ -714,6 +705,7 @@ function openDetail(id) {
 
   let html = '';
 
+  // 1. TOP ROW (GUESTS, LOCKBOX, IN/OUT)
   const quickItems = [
     { icon: '👤', val: p.guests ? `${p.guests}${p.extraGuests ? '+'+p.extraGuests : ''}` : null, label: 'Guests' },
     { icon: '🔐', val: p.lockbox, label: 'Lockbox', copy: true },
@@ -733,32 +725,28 @@ function openDetail(id) {
     html += '</div>';
   }
 
-  // ΝΕΟ ΔΙΠΛΟ GRID ΓΙΑ ΑΠΟΘΗΚΗ/ΘΕΡΜΑΝΣΗ & WIFI
-  html += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+  // 2. MIDDLE ROW (STORAGE, FUEL, WIFI)
+  html += `<div class="quick-grid" style="margin-top:-8px;">
     
-    <div class="info-card" style="margin-bottom:0; padding:12px; display:flex; flex-direction:column; justify-content:center;">
-      <div class="info-title" style="margin-bottom:6px; font-size:11px; color:var(--text-muted);">📦 Αποθήκη & ♨️ Θέρμανση</div>
-      <div style="font-size:14px; font-weight:700; color:var(--accent); margin-bottom:4px; line-height:1.2;">
-        ${p.storage || '<span style="color:var(--text-dim);font-weight:500;">Χωρίς Αποθήκη</span>'}
-      </div>
-      ${p.heatingSource ? `<div style="font-size:12px; color:var(--text); line-height:1.2;">🔥 ${p.heatingSource}</div>` : ''}
+    <div class="quick-box" style="padding:10px 4px;">
+      <div class="lbl" style="margin-top:0; margin-bottom:4px; font-size:10px; color:var(--text-muted); text-transform:uppercase;">📦 Αποθήκη</div>
+      <div class="val" style="font-size:13px; color:var(--accent); line-height:1.2; white-space:normal; padding:0 4px;">${p.storage || '<span style="color:var(--text-dim)">—</span>'}</div>
     </div>
-
-    <div class="info-card" style="margin-bottom:0; padding:12px; display:flex; flex-direction:column; justify-content:center;">
-      <div class="info-title" style="margin-bottom:6px; font-size:11px; color:var(--text-muted);">📶 WiFi</div>
-      <div style="font-size:14px; font-weight:700; color:var(--text); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-        ${p.wifi || '<span style="color:var(--text-dim);font-weight:500;">—</span>'}
-      </div>
-      ${p.wifiPass ? `
-        <div style="display:flex; align-items:center; gap:6px;">
-          <span style="font-family:monospace; font-size:12px; color:var(--text-muted);">${p.wifiPass}</span>
-          <button class="copy-btn" style="padding:2px 6px; font-size:10px; margin:0;" onclick="copyText(this,'${p.wifiPass}')">Copy</button>
-        </div>
-      ` : ''}
+    
+    <div class="quick-box" style="padding:10px 4px;">
+      <div class="lbl" style="margin-top:0; margin-bottom:4px; font-size:10px; color:var(--text-muted); text-transform:uppercase;">🔥 Καύσιμο</div>
+      <div class="val" style="font-size:13px; color:var(--warning); line-height:1.2; white-space:normal; padding:0 4px;">${p.fuel || '<span style="color:var(--text-dim)">—</span>'}</div>
+    </div>
+    
+    <div class="quick-box" style="padding:10px 4px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;">
+      <div class="lbl" style="margin-top:0; margin-bottom:4px; font-size:10px; color:var(--text-muted); text-transform:uppercase;">📶 WiFi</div>
+      <div class="val" style="font-size:12px; width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px;">${p.wifi || '<span style="color:var(--text-dim)">—</span>'}</div>
+      ${p.wifiPass ? `<button class="copy-btn" style="margin:4px auto 0; font-size:10px; padding:3px 6px; max-width:90%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="copyText(this,'${p.wifiPass}')">📋 ${p.wifiPass}</button>` : ''}
     </div>
 
   </div>`;
 
+  // 3. SPACE CARD (Without Heating)
   if (p.bedrooms || p.bathrooms || p.sqm || p.levels || p.doubleBeds || p.singleBeds || p.sofaDouble || p.sofaSingle) {
     html += `<div class="info-card"><div class="info-title">🏠 Χώρος</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -790,7 +778,6 @@ function openDetail(id) {
       if (c.key) {
           hasContacts = true;
           const contactData = extractContact(c.key);
-          
           let titleText = contactData.name ? contactData.name : c.gr;
           let subText = contactData.name ? c.gr : c.en; 
           
@@ -830,7 +817,6 @@ function openDetail(id) {
     { title: '🚪 Άλλοι Χώροι', content: combinedOtherSpaces },
     { title: '🅿️ Parking', content: p.parking },
     { title: '🔥 Τζάκι', content: p.fireplace },
-    { title: '♨️ Θέρμανση', content: p.heating },
     { title: '🚿 Ζεστό Νερό', content: p.hotWater },
   ];
 
@@ -845,8 +831,6 @@ function openDetail(id) {
   html += '<div style="height:80px"></div>';
 
   document.getElementById('detailBody').innerHTML = html;
-  
-  // Αν δεν είναι ήδη ανοιχτό, άνοιξέ το
   document.getElementById('detailView').classList.add('open');
 }
 
@@ -864,9 +848,15 @@ function toggleAccordion(btn) {
 
 function copyText(btn, text) {
   navigator.clipboard.writeText(text);
+  
+  const originalHtml = btn.innerHTML;
   btn.classList.add('copied');
   btn.textContent = '✓ OK';
-  setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy'; }, 1500);
+  
+  setTimeout(() => { 
+    btn.classList.remove('copied'); 
+    btn.innerHTML = originalHtml; 
+  }, 1500);
 }
 
 // ─── STORAGES ────────────────────────────────────────────────────────────
