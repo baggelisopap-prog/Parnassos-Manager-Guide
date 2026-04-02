@@ -69,7 +69,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .page-header h2 { font-size: 20px; font-weight: 700; }
 .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
-/* Filter Chips (Απαλό στυλ) */
+/* Filter Chips */
 .filters { display: flex; gap: 8px; overflow-x: auto; padding: 8px 16px 12px; scrollbar-width: none; align-items: center; }
 .filters::-webkit-scrollbar { display: none; }
 .chip { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; font-family: inherit; transition: all 0.2s ease; }
@@ -112,11 +112,11 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .contacts-title { font-size: 16px; font-weight: 700; margin: 0 4px 10px; }
 .contacts-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
 .contacts-scroll::-webkit-scrollbar { display: none; }
-.contact-card { background: #1f2a3a; border: 1px solid var(--border); border-radius: 12px; padding: 12px; min-width: 105px; text-align: center; flex-shrink: 0; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: space-between; }
+.contact-card { background: #1f2a3a; border: 1px solid var(--border); border-radius: 12px; padding: 12px; min-width: 120px; text-align: center; flex-shrink: 0; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: space-between; }
 .contact-icon { font-size: 22px; margin-bottom: 4px; }
-.contact-title { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.contact-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.2; }
 .contact-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; margin-top: 2px; line-height: 1.2; }
-.contact-call { display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent); background: rgba(74,158,255,0.1); padding: 6px 4px; border-radius: 6px; text-decoration: none; width: 100%; transition: background 0.2s; letter-spacing: 0.5px; }
+.contact-call { display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent); background: rgba(74,158,255,0.1); padding: 8px 6px; border-radius: 6px; text-decoration: none; width: 100%; transition: background 0.2s; letter-spacing: 0.5px; }
 .contact-call:active { background: rgba(74,158,255,0.2); }
 
 /* Accordion & Storage & Points */
@@ -258,15 +258,27 @@ let activeFilter = 'all';
 let map = null;
 let markersLayer = null;
 
-// ─── HELPER: Εξαγωγή Τηλεφώνου ──────────────────────────────────────────
-function extractPhone(str) {
+// ─── HELPER: Εξαγωγή Ονόματος και Τηλεφώνου ─────────────────────────────
+function extractContact(str) {
   if (!str) return null;
-  const match = String(str).match(/(\+?\d[\d\s-]{8,}\d)/);
+  const strStr = String(str);
+  // Βρίσκει τηλέφωνα με τουλάχιστον 10 ψηφία, με ή χωρίς κενά, παύλες κτλ.
+  const match = strStr.match(/(\+?\d[\d\s-]{8,}\d)/);
   if (match) {
-      const num = match[1].replace(/[\s-]/g, '');
-      return { raw: num };
+      const num = match[1].replace(/[\s-]/g, ''); // Καθαρίζει το νούμερο
+      // Αφαιρεί το νούμερο από το αρχικό string, καθαρίζει τα κενά (new lines) και τις παύλες στις άκρες
+      const name = strStr.replace(match[1], '').replace(/[\n\r]/g, ' ').replace(/^[-:\s]+|[-:\s]+$/g, '').trim();
+      return { phone: num, name: name };
   }
-  return null;
+  return { phone: null, name: strStr.trim() };
+}
+
+function linkifyPhones(str) {
+  if (!str) return '';
+  return String(str).replace(/(\+?\d[\d\s-]{8,}\d)/g, (match) => {
+    const num = match.replace(/[\s-]/g, ''); 
+    return `<a href="tel:${num}" style="color:var(--accent); text-decoration:none; font-weight:700;">${match}</a>`;
+  });
 }
 
 // ─── GOOGLE SHEETS FETCH ─────────────────────────────────────────────────
@@ -683,7 +695,7 @@ function openDetail(id) {
     </div>`;
   }
 
-  // ΝΕΑ ΟΡΙΖΟΝΤΙΑ ΛΙΣΤΑ ΕΠΑΦΩΝ & ΤΕΧΝΙΚΩΝ (Το νούμερο φαίνεται ολόκληρο αντί για "Κλήση")
+  // ΝΕΑ ΟΡΙΖΟΝΤΙΑ ΛΙΣΤΑ ΕΠΑΦΩΝ & ΤΕΧΝΙΚΩΝ (Εμφανίζει το Όνομα και το Νούμερο)
   let contactsCards = '';
   let hasContacts = false;
   const contactsList = [
@@ -698,21 +710,24 @@ function openDetail(id) {
   contactsList.forEach(c => {
       if (c.key) {
           hasContacts = true;
-          const phoneData = extractPhone(c.key);
-          if (phoneData) {
-              // Δείχνει το εικονίδιο του τηλεφώνου μαζί με ολόκληρο το νούμερο
+          const contactData = extractContact(c.key);
+          
+          let titleText = contactData.name ? contactData.name : c.gr;
+          let subText = contactData.name ? c.gr : c.en; 
+          
+          if (contactData.phone) {
               contactsCards += `<div class="contact-card">
                   <div class="contact-icon">${c.icon}</div>
-                  <div class="contact-title">${c.en}</div>
-                  <div class="contact-sub">${c.gr}</div>
-                  <a href="tel:${phoneData.raw}" class="contact-call">📞 ${phoneData.raw}</a>
+                  <div class="contact-sub" style="margin-bottom: 2px;">${subText}</div>
+                  <div class="contact-title" style="margin-bottom: 10px; font-size:14px;">${titleText}</div>
+                  <a href="tel:${contactData.phone}" class="contact-call">📞 ${contactData.phone}</a>
               </div>`;
           } else {
               contactsCards += `<div class="contact-card">
                   <div class="contact-icon">${c.icon}</div>
-                  <div class="contact-title">${c.en}</div>
-                  <div class="contact-sub">${c.gr}</div>
-                  <div class="contact-call" style="background:rgba(255,255,255,0.05);color:var(--text-muted)">${c.key}</div>
+                  <div class="contact-sub" style="margin-bottom: 2px;">${subText}</div>
+                  <div class="contact-title" style="margin-bottom: 10px; font-size:14px;">${titleText}</div>
+                  <div class="contact-call" style="background:rgba(255,255,255,0.05);color:var(--text-muted)">Μη διαθέσιμο</div>
               </div>`;
           }
       }
@@ -744,7 +759,7 @@ function openDetail(id) {
     if (!s.content) return;
     html += `<div class="accordion">
       <button class="accordion-header" onclick="toggleAccordion(this)"><span>${s.title}</span><span class="accordion-arrow">▾</span></button>
-      <div class="accordion-body" style="display:none">${s.content}</div>
+      <div class="accordion-body" style="display:none">${linkifyPhones(s.content)}</div>
     </div>`;
   });
 
