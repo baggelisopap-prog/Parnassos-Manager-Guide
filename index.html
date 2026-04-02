@@ -160,18 +160,15 @@ body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; background: 
 
 /* Stats Row */
 .stats-row {
-  display: flex; gap: 10px; padding: 0 20px 16px;
-  overflow-x: auto; scrollbar-width: none; position: relative;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 0 20px 16px;
 }
-.stats-row::-webkit-scrollbar { display: none; }
 .stat-card {
-  flex: 1; min-width: 0;
   background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius-md); padding: 14px 12px;
-  display: flex; flex-direction: column; gap: 2px;
+  border-radius: var(--radius-md); padding: 12px 8px;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1px;
 }
 .stat-value { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-.stat-label { font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-label { font-size: 9px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.2; }
 
 /* Quick Actions */
 .quick-actions {
@@ -184,6 +181,7 @@ body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; background: 
   display: flex; flex-direction: column; gap: 10px;
   cursor: pointer; transition: all 0.2s ease;
   position: relative; overflow: hidden;
+  color: var(--text); font-family: inherit; text-align: left;
 }
 .action-card:active { transform: scale(0.97); }
 .action-card::after {
@@ -196,7 +194,7 @@ body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; background: 
   display: flex; align-items: center; justify-content: center;
 }
 .action-icon svg { width: 20px; height: 20px; }
-.action-label { font-size: 14px; font-weight: 700; }
+.action-label { font-size: 14px; font-weight: 700; color: var(--text); }
 .action-count { font-size: 12px; color: var(--text-secondary); }
 
 /* ═══════════════ SEARCH BAR ═══════════════ */
@@ -521,6 +519,15 @@ body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; background: 
 #map-overlay {
   position: absolute; left: 0; width: 100%; z-index: 6;
   cursor: pointer; display: none;
+  background: linear-gradient(180deg, rgba(11,15,20,0.5) 0%, transparent 40%, transparent 80%, rgba(11,15,20,0.3) 100%);
+}
+#map-overlay::after {
+  content: 'Πατήστε για πλήρη χάρτη →';
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  background: rgba(11,15,20,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  color: var(--accent); font-size: 12px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;
+  padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border-light);
+  white-space: nowrap; pointer-events: none;
 }
 .hide-map-labels .pin-label { display: none !important; }
 
@@ -644,7 +651,7 @@ body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; background: 
     </div>
 
     <div id="global-map"></div>
-    <div id="map-overlay"></div>
+    <div id="map-overlay" onclick="switchTab('map')"></div>
   </div>
   <nav class="bottom-nav" id="bottomNav"></nav>
 </div>
@@ -1417,17 +1424,26 @@ function renderPoints() {
 // ─── INIT ────────────────────────────────────────────────────────────────
 switchTab('home');
 
-// Handle home map position on scroll
+// Handle home map position on scroll + auto-switch to map
+let scrollSwitchLock = false;
 document.getElementById('tab-home').addEventListener('scroll', () => {
-  if (activeTab === 'home') {
-    const mapSpace = document.getElementById('home-map-space');
-    const mapEl = document.getElementById('global-map');
-    const overlayEl = document.getElementById('map-overlay');
-    const rect = mapSpace.getBoundingClientRect();
-    mapEl.style.top = Math.max(0, rect.top) + 'px';
-    mapEl.style.height = (window.innerHeight - Math.max(0, rect.top)) + 'px';
-    overlayEl.style.top = mapEl.style.top;
-    overlayEl.style.height = mapEl.style.height;
+  if (activeTab !== 'home') return;
+  const homeEl = document.getElementById('tab-home');
+  const mapSpace = document.getElementById('home-map-space');
+  const mapEl = document.getElementById('global-map');
+  const overlayEl = document.getElementById('map-overlay');
+  const rect = mapSpace.getBoundingClientRect();
+  mapEl.style.top = Math.max(0, rect.top) + 'px';
+  mapEl.style.height = (window.innerHeight - Math.max(0, rect.top)) + 'px';
+  overlayEl.style.top = mapEl.style.top;
+  overlayEl.style.height = mapEl.style.height;
+
+  // If user scrolled far enough that map takes >75% of screen, switch to full map
+  if (!scrollSwitchLock && rect.top < window.innerHeight * 0.2) {
+    scrollSwitchLock = true;
+    switchTab('map');
+    // Reset home scroll for when they come back
+    setTimeout(() => { homeEl.scrollTop = 0; scrollSwitchLock = false; }, 500);
   }
 });
 </script>
