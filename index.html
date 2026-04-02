@@ -93,7 +93,6 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .detail-view.open { transform: translateX(0); }
 .detail-header { padding: 12px 16px; display: flex; align-items: center; gap: 8px; position: sticky; top: 0; background: rgba(15,20,25,0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 5; border-bottom: 1px solid var(--border); }
 .back-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 4px; display: flex; flex-shrink: 0; }
-
 .detail-nav-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; flex-shrink: 0; transition: background 0.2s; }
 .detail-nav-btn:active { background: rgba(255,255,255,0.15); }
 .title-wrapper { flex: 1; text-align: center; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;}
@@ -103,7 +102,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 
 .detail-body { padding: 16px; }
 
-/* ─── ANIMATIONS ΓΙΑ SWIPE/NEXT/PREV ─── */
+/* ANIMATIONS ΓΙΑ SWIPE/NEXT/PREV */
 @keyframes slideOutLeft { to { transform: translateX(-50px); opacity: 0; } }
 @keyframes slideOutRight { to { transform: translateX(50px); opacity: 0; } }
 @keyframes slideInRight { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -459,7 +458,7 @@ function switchTab(id) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
 }
 
-// ─── ANIMATION ΛΟΓΙΚΗ ΓΙΑ ΤΟ NEXT/PREV SWIPE ─────────────────────────────
+// ─── SWIPE EVENT LISTENERS ΓΙΑ ΠΛΟΗΓΗΣΗ ΣΤΗΝ ΚΑΡΤΕΛΑ ──────────────────────
 const detailViewEl = document.getElementById('detailView');
 let touchStartX = 0;
 let touchStartY = 0;
@@ -470,6 +469,9 @@ detailViewEl.addEventListener('touchstart', e => {
 }, {passive: true});
 
 detailViewEl.addEventListener('touchend', e => {
+  // ΠΡΟΣΤΑΣΙΑ: Αν ο χρήστης σέρνει τη λίστα των επαφών (ή φίλτρων), δεν αλλάζουμε σπίτι
+  if (e.target.closest('.contacts-scroll') || e.target.closest('.filters')) return;
+
   let touchEndX = e.changedTouches[0].screenX;
   let touchEndY = e.changedTouches[0].screenY;
   
@@ -478,14 +480,13 @@ detailViewEl.addEventListener('touchend', e => {
   
   if (Math.abs(deltaX) > 70 && Math.abs(deltaX) > Math.abs(deltaY)) {
     if (deltaX < 0) {
-      navigateDetail(1); // Swipe left -> Next
+      navigateDetail(1); // Swipe αριστερά -> Επόμενο
     } else {
-      navigateDetail(-1); // Swipe right -> Prev
+      navigateDetail(-1); // Swipe δεξιά -> Προηγούμενο
     }
   }
 }, {passive: true});
 
-// H συνάρτηση που αναλαμβάνει να αλλάξει σελίδα με ωραίο εφέ (Transitions)
 function navigateDetail(direction) {
   if (currentPropIndex === -1 || currentPropList.length === 0 || isAnimating) return;
   isAnimating = true;
@@ -493,41 +494,32 @@ function navigateDetail(direction) {
   const bodyEl = document.getElementById('detailBody');
   const titleEl = document.querySelector('.title-wrapper');
   
-  // Προσδιορισμός κατεύθυνσης animation
   const outClass = direction === 1 ? 'slide-out-next' : 'slide-out-prev';
   const inClass = direction === 1 ? 'slide-in-next' : 'slide-in-prev';
 
-  // 1. Ξεκινάμε το animation της εξόδου
   bodyEl.classList.add(outClass);
   titleEl.classList.add(outClass);
 
-  // 2. Μόλις βγει (μετά από 150ms), αλλάζουμε τα δεδομένα
   setTimeout(() => {
     let newIndex = currentPropIndex + direction;
     if (newIndex < 0) newIndex = currentPropList.length - 1;
     if (newIndex >= currentPropList.length) newIndex = 0;
     
-    // Αλλάζουμε τα δεδομένα
     openDetail(currentPropList[newIndex].id);
-    
-    // Επαναφορά Scrollbar στην κορυφή του νέου σπιτιού!
     document.getElementById('detailView').scrollTop = 0;
     
-    // Αφαιρούμε τις κλάσεις της εξόδου
     bodyEl.classList.remove(outClass);
     titleEl.classList.remove(outClass);
     
-    // 3. Προσθέτουμε την κλάση της εισόδου
     bodyEl.classList.add(inClass);
     titleEl.classList.add(inClass);
     
-    // 4. Καθαρίζουμε την κλάση της εισόδου και ανοίγουμε το κλείδωμα
     setTimeout(() => {
       bodyEl.classList.remove(inClass);
       titleEl.classList.remove(inClass);
       isAnimating = false;
-    }, 200); // Διάρκεια εισόδου
-  }, 150); // Διάρκεια εξόδου
+    }, 200); 
+  }, 150); 
 }
 
 
@@ -851,7 +843,6 @@ function openDetail(id) {
     { title: '🚪 Άλλοι Χώροι', content: combinedOtherSpaces },
     { title: '🅿️ Parking', content: p.parking },
     { title: '🔥 Τζάκι', content: p.fireplace },
-    { title: '♨️ Θέρμανση', content: p.heating },
     { title: '🚿 Ζεστό Νερό', content: p.hotWater },
   ];
 
