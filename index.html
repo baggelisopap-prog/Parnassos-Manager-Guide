@@ -116,7 +116,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .contact-icon { font-size: 22px; margin-bottom: 4px; }
 .contact-title { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.2; }
 .contact-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; margin-top: 2px; line-height: 1.2; }
-.contact-call { display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent); background: rgba(74,158,255,0.1); padding: 6px 4px; border-radius: 6px; text-decoration: none; width: 100%; transition: background 0.2s; }
+.contact-call { display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent); background: rgba(74,158,255,0.1); padding: 6px 4px; border-radius: 6px; text-decoration: none; width: 100%; transition: background 0.2s; letter-spacing: 0.5px; }
 .contact-call:active { background: rgba(74,158,255,0.2); }
 
 /* Accordion & Storage & Points */
@@ -627,7 +627,7 @@ function renderProperties() {
   el.innerHTML = html;
 }
 
-// ─── DETAIL VIEW (Με τη νέα οριζόντια λίστα επαφών) ──────────────────────
+// ─── DETAIL VIEW ──────────────────────────────────────────────────────────
 function openDetail(id) {
   const p = properties.find(x => x.id === id);
   if (!p) return;
@@ -683,7 +683,7 @@ function openDetail(id) {
     </div>`;
   }
 
-  // ΝΕΑ ΟΡΙΖΟΝΤΙΑ ΛΙΣΤΑ ΕΠΑΦΩΝ & ΤΕΧΝΙΚΩΝ (Scrollable)
+  // ΝΕΑ ΟΡΙΖΟΝΤΙΑ ΛΙΣΤΑ ΕΠΑΦΩΝ & ΤΕΧΝΙΚΩΝ (Το νούμερο φαίνεται ολόκληρο αντί για "Κλήση")
   let contactsCards = '';
   let hasContacts = false;
   const contactsList = [
@@ -700,12 +700,12 @@ function openDetail(id) {
           hasContacts = true;
           const phoneData = extractPhone(c.key);
           if (phoneData) {
-              const shortNum = phoneData.raw.substring(0, 3) + '...';
+              // Δείχνει το εικονίδιο του τηλεφώνου μαζί με ολόκληρο το νούμερο
               contactsCards += `<div class="contact-card">
                   <div class="contact-icon">${c.icon}</div>
                   <div class="contact-title">${c.en}</div>
                   <div class="contact-sub">${c.gr}</div>
-                  <a href="tel:${phoneData.raw}" class="contact-call">📞 Κλήση <span style="font-size:9px;opacity:0.8">(${shortNum})</span></a>
+                  <a href="tel:${phoneData.raw}" class="contact-call">📞 ${phoneData.raw}</a>
               </div>`;
           } else {
               contactsCards += `<div class="contact-card">
