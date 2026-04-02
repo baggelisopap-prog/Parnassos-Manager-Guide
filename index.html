@@ -435,7 +435,7 @@ body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; background: 
   gap: 8px;
 }
 .accordion-header .acc-icon { display: flex; flex-shrink: 0; }
-.accordion-header .acc-icon svg { width: 16px; height: 16px; color: var(--text-secondary); }
+.accordion-header .acc-icon svg { width: 16px; height: 16px; color: inherit; }
 .accordion-header .acc-label { flex: 1; text-align: left; }
 .accordion-header.active { background: var(--accent); color: #fff; }
 .accordion-header.active .acc-icon svg { color: rgba(255,255,255,0.8); }
@@ -1324,22 +1324,22 @@ function openDetail(id) {
   // ── Accordions
   const combinedSpaces = [p.otherRooms, p.otherSpaces].filter(Boolean).join('<br><br>');
   const sections = [
-    { icon: ICO.directions, title: 'Οδηγίες Check-in', content: p.directions },
-    { icon: ICO.clipboard, title: 'Οδηγίες Σπιτιού', content: p.houseInstructions },
-    { icon: ICO.utensils, title: 'Παροχές Κουζίνας', content: p.kitchen },
-    { icon: ICO.shower, title: 'Παροχές Μπάνιου', content: p.bathroom },
-    { icon: ICO.sofa, title: 'Παροχές Σαλονιού', content: p.living },
-    { icon: ICO.door, title: 'Άλλοι Χώροι', content: combinedSpaces },
-    { icon: ICO.car, title: 'Parking', content: p.parking },
-    { icon: ICO.flame, title: 'Τζάκι', content: p.fireplace },
-    { icon: ICO.droplets, title: 'Ζεστό Νερό', content: p.hotWater },
+    { icon: ICO.directions, title: 'Οδηγίες Check-in', content: p.directions, color: 'var(--accent)' },
+    { icon: ICO.clipboard, title: 'Οδηγίες Σπιτιού', content: p.houseInstructions, color: 'var(--teal)' },
+    { icon: ICO.utensils, title: 'Παροχές Κουζίνας', content: p.kitchen, color: 'var(--warning)' },
+    { icon: ICO.shower, title: 'Παροχές Μπάνιου', content: p.bathroom, color: 'var(--purple)' },
+    { icon: ICO.sofa, title: 'Παροχές Σαλονιού', content: p.living, color: 'var(--orange)' },
+    { icon: ICO.door, title: 'Άλλοι Χώροι', content: combinedSpaces, color: 'var(--text-secondary)' },
+    { icon: ICO.car, title: 'Parking', content: p.parking, color: 'var(--accent)' },
+    { icon: ICO.flame, title: 'Τζάκι', content: p.fireplace, color: 'var(--danger)' },
+    { icon: ICO.droplets, title: 'Ζεστό Νερό', content: p.hotWater, color: '#38bdf8' },
   ];
 
   sections.forEach(s => {
     if (!s.content) return;
     html += `<div class="accordion">
       <button class="accordion-header" onclick="toggleAccordion(this)">
-        <span class="acc-icon">${s.icon}</span>
+        <span class="acc-icon" style="color:${s.color}">${s.icon}</span>
         <span class="acc-label">${s.title}</span>
         <span class="accordion-arrow">${ICO.chevDown}</span>
       </button>
