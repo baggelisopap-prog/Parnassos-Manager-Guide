@@ -9,7 +9,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
 <style>
 :root {
   --bg: #0f1419; --card: #1a2332; --card-hover: #1e2a3a; --border: #2a3a4e;
@@ -65,7 +69,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .page-header h2 { font-size: 20px; font-weight: 700; }
 .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
-/* Filter Chips */
+/* Filter Chips (Απαλό στυλ) */
 .filters { display: flex; gap: 8px; overflow-x: auto; padding: 8px 16px 12px; scrollbar-width: none; align-items: center; }
 .filters::-webkit-scrollbar { display: none; }
 .chip { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; font-family: inherit; transition: all 0.2s ease; }
@@ -103,6 +107,18 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .copy-btn { background: rgba(74,158,255,0.15); border: none; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--accent); font-size: 11px; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
 .copy-btn.copied { background: var(--success); color: var(--bg); }
 
+/* Horizontal Contacts Section */
+.contacts-section { margin-bottom: 16px; }
+.contacts-title { font-size: 16px; font-weight: 700; margin: 0 4px 10px; }
+.contacts-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.contacts-scroll::-webkit-scrollbar { display: none; }
+.contact-card { background: #1f2a3a; border: 1px solid var(--border); border-radius: 12px; padding: 12px; min-width: 105px; text-align: center; flex-shrink: 0; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: space-between; }
+.contact-icon { font-size: 22px; margin-bottom: 4px; }
+.contact-title { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.contact-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; margin-top: 2px; line-height: 1.2; }
+.contact-call { display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent); background: rgba(74,158,255,0.1); padding: 6px 4px; border-radius: 6px; text-decoration: none; width: 100%; transition: background 0.2s; }
+.contact-call:active { background: rgba(74,158,255,0.2); }
+
 /* Accordion & Storage & Points */
 .accordion { margin-bottom: 8px; background: rgba(74,158,255,0.04); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
 .accordion-header { width: 100%; padding: 14px 16px; background: none; border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text); font-size: 14px; font-weight: 600; font-family: inherit; transition: all 0.2s ease; }
@@ -126,6 +142,12 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 .point-card .name { font-size: 14px; color: var(--text); font-weight: 500; }
 .point-card .maps-link { color: var(--accent); display: flex; align-items: center; gap: 4px; font-size: 12px; }
 
+/* Cluster Custom Colors */
+.marker-cluster-small { background-color: rgba(74, 158, 255, 0.6); }
+.marker-cluster-small div { background-color: rgba(74, 158, 255, 1); color: #fff; font-weight: 700; }
+.marker-cluster-medium { background-color: rgba(251, 191, 36, 0.6); }
+.marker-cluster-medium div { background-color: rgba(251, 191, 36, 1); color: #fff; font-weight: 700; }
+
 /* Custom Leaflet Marker Icons */
 .custom-map-marker { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); transition: transform 0.2s; }
 .custom-map-marker:active { transform: scale(0.9); }
@@ -146,18 +168,9 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
 
 /* Labels ON the pins */
 .leaflet-tooltip.pin-label {
-    background-color: var(--card);
-    border: 1px solid var(--border);
-    color: var(--text);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 8px;
-    white-space: nowrap;
-    font-family: 'DM Sans', sans-serif;
-    pointer-events: auto !important; 
-    cursor: pointer;
+    background-color: var(--card); border: 1px solid var(--border); color: var(--text);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius: 6px; font-size: 12px;
+    font-weight: 700; padding: 4px 8px; white-space: nowrap; pointer-events: auto !important; cursor: pointer;
     transition: transform 0.1s, background 0.1s;
 }
 .leaflet-tooltip.pin-label:active { transform: scale(0.95); background: var(--card-hover); }
@@ -178,9 +191,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
   <div style="font-size:40px;margin-bottom:8px">🏔️</div>
   <h1 style="font-size:22px;font-weight:700;margin-bottom:4px">Parnassos Manager</h1>
   <p style="color:var(--text-muted);font-size:13px;margin-bottom:32px">Enter PIN to continue</p>
-  <div class="pin-dots" id="pinDots">
-    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-  </div>
+  <div class="pin-dots" id="pinDots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
   <div class="pin-pad" id="pinPad"></div>
 </div>
 
@@ -190,18 +201,10 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
     <div class="tab-panel active" id="tab-home">
       <div class="page-header"><h2>Αρχική</h2><p>Parnassos Manager Dashboard</p></div>
       <div class="dash-grid">
-        <button class="dash-card" onclick="switchTab('properties')">
-          <div class="dash-icon">🏠</div><span>Σπίτια</span>
-        </button>
-        <button class="dash-card" onclick="switchTab('storages')">
-          <div class="dash-icon">📦</div><span>Αποθήκες</span>
-        </button>
-        <button class="dash-card" onclick="switchTab('points')">
-          <div class="dash-icon">📍</div><span>Σημεία</span>
-        </button>
-        <button class="dash-card" onclick="switchTab('map')">
-          <div class="dash-icon">🗺️</div><span>Χάρτης</span>
-        </button>
+        <button class="dash-card" onclick="switchTab('properties')"><div class="dash-icon">🏠</div><span>Σπίτια</span></button>
+        <button class="dash-card" onclick="switchTab('storages')"><div class="dash-icon">📦</div><span>Αποθήκες</span></button>
+        <button class="dash-card" onclick="switchTab('points')"><div class="dash-icon">📍</div><span>Σημεία</span></button>
+        <button class="dash-card" onclick="switchTab('map')"><div class="dash-icon">🗺️</div><span>Χάρτης</span></button>
       </div>
     </div>
 
@@ -226,19 +229,14 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg);
     <div id="map-overlay" onclick="switchTab('map')"></div>
 
   </div>
-  
   <nav class="bottom-nav" id="bottomNav"></nav>
 </div>
 
 <div class="detail-view" id="detailView">
   <div class="detail-header">
-    <button class="back-btn" onclick="closeDetail()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
+    <button class="back-btn" onclick="closeDetail()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div><div id="detailTitle" style="font-size:18px;font-weight:700"></div><div id="detailSub" style="font-size:12px;color:var(--text-muted)"></div></div>
-    <a id="detailMapsBtn" class="maps-btn" href="#" target="_blank" rel="noopener">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη
-    </a>
+    <a id="detailMapsBtn" class="maps-btn" href="#" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Στο χάρτη</a>
   </div>
   <div class="detail-body" id="detailBody"></div>
 </div>
@@ -258,14 +256,17 @@ let properties = [], points = [], storages = [];
 let activeTab = 'home';
 let activeFilter = 'all';
 let map = null;
+let markersLayer = null;
 
-// ─── HELPER: Δημιουργία Clickable Τηλεφώνων ──────────────────────────────
-function linkifyPhones(str) {
-  if (!str) return '';
-  return String(str).replace(/(\+?\d[\d\s-]{8,}\d)/g, (match) => {
-    const num = match.replace(/[\s-]/g, ''); 
-    return `<a href="tel:${num}" style="color:var(--accent); text-decoration:none; font-weight:700;">${match}</a>`;
-  });
+// ─── HELPER: Εξαγωγή Τηλεφώνου ──────────────────────────────────────────
+function extractPhone(str) {
+  if (!str) return null;
+  const match = String(str).match(/(\+?\d[\d\s-]{8,}\d)/);
+  if (match) {
+      const num = match[1].replace(/[\s-]/g, '');
+      return { raw: num };
+  }
+  return null;
 }
 
 // ─── GOOGLE SHEETS FETCH ─────────────────────────────────────────────────
@@ -279,15 +280,10 @@ function parseGviz(text) {
   return json.table.rows.map(r => {
     const obj = {};
     r.c.forEach((cell, i) => { 
-      if (!cell) {
-        obj[cols[i]] = '';
-      } else if (cell.f !== undefined && cell.f !== null) {
-        obj[cols[i]] = cell.f;
-      } else if (cell.v !== undefined && cell.v !== null) {
-        obj[cols[i]] = String(cell.v);
-      } else {
-        obj[cols[i]] = '';
-      }
+      if (!cell) obj[cols[i]] = '';
+      else if (cell.f !== undefined && cell.f !== null) obj[cols[i]] = cell.f;
+      else if (cell.v !== undefined && cell.v !== null) obj[cols[i]] = String(cell.v);
+      else obj[cols[i]] = '';
     });
     return obj;
   });
@@ -451,12 +447,26 @@ function switchTab(id) {
 // ─── MAP (Google Maps Integration) ───────────────────────────────────────
 function initMap() {
   if (map) return;
-  map = L.map('global-map', { zoomControl: false }).setView([38.52, 22.56], 11);
+  map = L.map('global-map', { zoomControl: false, maxZoom: 18 }).setView([38.52, 22.56], 11);
   L.control.zoom({ position: 'topright' }).addTo(map);
   
   L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-    attribution: '© Google Maps', maxZoom: 20
+    attribution: '© Google Maps'
   }).addTo(map);
+
+  // Marker Cluster Initialization
+  markersLayer = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    maxClusterRadius: 40,
+    iconCreateFunction: function(cluster) {
+        let childCount = cluster.getChildCount();
+        let c = ' marker-cluster-';
+        if (childCount < 10) c += 'small';
+        else c += 'medium';
+        return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
+    }
+  });
+  map.addLayer(markersLayer);
 
   function updateMapLabels() {
     if (map.getZoom() < 14) {
@@ -471,7 +481,7 @@ function initMap() {
 
 function renderMapMarkers() {
   if (!map) return;
-  map.eachLayer(l => { if (l instanceof L.Marker && !l._url) map.removeLayer(l); });
+  markersLayer.clearLayers();
 
   properties.forEach(p => {
     if (!p.lat || !p.lng) return;
@@ -488,8 +498,7 @@ function renderMapMarkers() {
     
     const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
 
-    L.marker([p.lat, p.lng], { icon: customIcon })
-      .addTo(map)
+    const marker = L.marker([p.lat, p.lng], { icon: customIcon })
       .bindTooltip(label, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -45], interactive: true })
       .bindPopup(`
         <div class="clickable-popup-area" onclick="openDetail('${p.id}')">
@@ -498,6 +507,8 @@ function renderMapMarkers() {
         </div>
         <a class="map-popup-btn" href="${mapLink}" target="_blank" onclick="event.stopPropagation()">Στο χάρτη</a>
       `);
+      
+    markersLayer.addLayer(marker);
   });
 
   points.forEach(p => {
@@ -515,8 +526,7 @@ function renderMapMarkers() {
 
     const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
 
-    L.marker([p.lat, p.lng], { icon: customIcon })
-      .addTo(map)
+    const marker = L.marker([p.lat, p.lng], { icon: customIcon })
       .bindTooltip(p.name, { permanent: true, direction: 'top', className: 'pin-label', offset: [0, -38], interactive: true })
       .bindPopup(`
         <div class="clickable-popup-area" onclick="switchTab('points')">
@@ -525,6 +535,8 @@ function renderMapMarkers() {
         </div>
         <a class="map-popup-btn" href="${mapLink}" target="_blank" onclick="event.stopPropagation()">Στο χάρτη</a>
       `);
+      
+    markersLayer.addLayer(marker);
   });
 }
 
@@ -537,12 +549,15 @@ function renderAll() {
   renderMapMarkers();
 }
 
-// ΕΠΑΝΑΦΟΡΑ ΣΤΑ ΑΠΛΑ CHIPS ΤΗΣ ΠΡΩΤΗΣ ΦΩΤΟΓΡΑΦΙΑΣ
 function renderFilters() {
   const el = document.getElementById('filters');
   const subs = [...new Set(properties.map(p => p.subregion).filter(Boolean))];
   
-  el.innerHTML = `<button class="chip ${activeFilter==='all'?'active':''}" onclick="setFilter('all')">Όλα</button>`;
+  const allStyle = activeFilter === 'all' 
+    ? `background:var(--accent); color:#fff; border-color:var(--accent); box-shadow: 0 4px 10px rgba(74,158,255,0.3);` 
+    : ``;
+  
+  el.innerHTML = `<button class="chip ${activeFilter==='all'?'active':''}" style="${allStyle}" onclick="setFilter('all')">Όλα</button>`;
   
   subs.forEach(s => {
     const color = SUBREGION_COLORS[s] || '#4a9eff';
@@ -583,7 +598,7 @@ function renderProperties() {
 
       const subParts = [];
       if (p.storage) subParts.push(`📦 ${p.storage}`);
-      const subtitle = subParts.length ? subParts.join(' &nbsp;·&nbsp; ') : '';
+      const subtitle = subParts.length ? subParts.join('  ·  ') : '';
 
       const mapLink = p.maps ? p.maps : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
 
@@ -612,7 +627,7 @@ function renderProperties() {
   el.innerHTML = html;
 }
 
-// ─── DETAIL ──────────────────────────────────────────────────────────────
+// ─── DETAIL VIEW (Με τη νέα οριζόντια λίστα επαφών) ──────────────────────
 function openDetail(id) {
   const p = properties.find(x => x.id === id);
   if (!p) return;
@@ -668,16 +683,49 @@ function openDetail(id) {
     </div>`;
   }
 
-  const combinedOtherSpaces = [p.otherRooms, p.otherSpaces].filter(Boolean).join('<br><br>');
+  // ΝΕΑ ΟΡΙΖΟΝΤΙΑ ΛΙΣΤΑ ΕΠΑΦΩΝ & ΤΕΧΝΙΚΩΝ (Scrollable)
+  let contactsCards = '';
+  let hasContacts = false;
+  const contactsList = [
+      { key: p.plumber, icon: '💧', en: 'Plumber', gr: 'Υδραυλικός' },
+      { key: p.electrician, icon: '⚡', en: 'Electrician', gr: 'Ηλεκτρολόγος' },
+      { key: p.gasSupplier, icon: '💨', en: 'Gas', gr: 'Υγραέριο' },
+      { key: p.burnerTech, icon: '🔥', en: 'Burner Tech', gr: 'Καυστήρας' },
+      { key: p.oilSupplier, icon: '🛢️', en: 'Oil Supplier', gr: 'Πετρέλαιο' },
+      { key: p.gasDriver, icon: '🚚', en: 'Gas Driver', gr: 'Διανομέας' }
+  ];
 
-  let contactsHtml = [];
-  if (p.plumber) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">💧 Υδραυλικός: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.plumber)}</span></div>`);
-  if (p.electrician) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">⚡ Ηλεκτρολόγος: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.electrician)}</span></div>`);
-  if (p.burnerTech) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">🔥 Συντηρητής Καυστήρα: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.burnerTech)}</span></div>`);
-  if (p.oilSupplier) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">🛢️ Προμηθευτής Πετρελαίου: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.oilSupplier)}</span></div>`);
-  if (p.gasSupplier) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">💨 Προμηθευτής Υγραερίου: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.gasSupplier)}</span></div>`);
-  if (p.gasDriver) contactsHtml.push(`<div class="info-row" style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">🚚 Διανομέας Υγραερίου: <br><span style="font-size:15px; color:var(--text); display:inline-block; margin-top:4px;">${linkifyPhones(p.gasDriver)}</span></div>`);
-  const contactsContent = contactsHtml.join('');
+  contactsList.forEach(c => {
+      if (c.key) {
+          hasContacts = true;
+          const phoneData = extractPhone(c.key);
+          if (phoneData) {
+              const shortNum = phoneData.raw.substring(0, 3) + '...';
+              contactsCards += `<div class="contact-card">
+                  <div class="contact-icon">${c.icon}</div>
+                  <div class="contact-title">${c.en}</div>
+                  <div class="contact-sub">${c.gr}</div>
+                  <a href="tel:${phoneData.raw}" class="contact-call">📞 Κλήση <span style="font-size:9px;opacity:0.8">(${shortNum})</span></a>
+              </div>`;
+          } else {
+              contactsCards += `<div class="contact-card">
+                  <div class="contact-icon">${c.icon}</div>
+                  <div class="contact-title">${c.en}</div>
+                  <div class="contact-sub">${c.gr}</div>
+                  <div class="contact-call" style="background:rgba(255,255,255,0.05);color:var(--text-muted)">${c.key}</div>
+              </div>`;
+          }
+      }
+  });
+
+  if (hasContacts) {
+      html += `<div class="contacts-section">
+          <div class="contacts-title">Επαφές & Τεχνικοί</div>
+          <div class="contacts-scroll">${contactsCards}</div>
+      </div>`;
+  }
+
+  const combinedOtherSpaces = [p.otherRooms, p.otherSpaces].filter(Boolean).join('<br><br>');
 
   const sections = [
     { title: '📍 Οδηγίες Check-in', content: p.directions },
@@ -686,7 +734,6 @@ function openDetail(id) {
     { title: '🛁 Παροχές Μπάνιου', content: p.bathroom },
     { title: '🛋️ Παροχές Σαλονιού', content: p.living },
     { title: '🚪 Άλλοι Χώροι', content: combinedOtherSpaces },
-    { title: '📞 Επαφές & Τεχνικοί', content: contactsContent },
     { title: '🅿️ Parking', content: p.parking },
     { title: '🔥 Τζάκι', content: p.fireplace },
     { title: '♨️ Θέρμανση', content: p.heating },
